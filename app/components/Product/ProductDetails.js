@@ -12,10 +12,10 @@ export default function ProductDetails({ product }) {
         />
         <div>
           <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
-          <p className="text-lg text-blue-600 font-semibold mb-4">
-            ৳{product.price}
+          <p className="text-lg text-blue-900 font-semibold mb-4">
+            ৳{product.sale_price}
           </p>
-          <p className="mb-6 text-gray-700">{product.description}</p>
+          <p className="mb-6 text-gray-900">{product.description}</p>
           <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
             Add to Cart
           </button>

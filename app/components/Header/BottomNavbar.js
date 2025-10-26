@@ -29,6 +29,7 @@ export default function BottomNavbar() {
     { name: "স্ট্রাইপ এবং চেক লুঙ্গি", slug: "stripe-check" },
     { name: "ফ্যান্সি লুঙ্গি", slug: "fancy" },
     { name: "টু পার্ট লুঙ্গি", slug: "two-part" },
+    { name: "এক কালার লুঙ্গি", slug: "one-color" },
   ];
 
   return (
@@ -47,10 +48,7 @@ export default function BottomNavbar() {
           <span className="mt-1 text-xs">Categories</span>
         </button>
 
-        <Link
-          href="/category/premium"
-          className="flex flex-col items-center text-gray-700"
-        >
+        <Link href="/shop" className="flex flex-col items-center text-gray-700">
           <ShoppingBag size={22} />
           <span className="mt-1 text-xs">Shop</span>
         </Link>

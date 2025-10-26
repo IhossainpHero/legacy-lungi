@@ -1,21 +1,32 @@
 "use client";
 import Image from "next/image";
-import BannerImage from "../../../public/images/banner5.png";
 
-const Hero = () => {
+export default function Hero() {
   return (
-    <section className="relative w-full">
-      <div className="relative w-full aspect-[16/9] sm:aspect-[16/7] md:aspect-[16/6] lg:aspect-[16/5] xl:aspect-[16/4] 2xl:aspect-[16/3]">
-        <Image
-          src={BannerImage}
-          alt="Hero Banner"
-          fill
-          className="object-cover object-top"
-          priority
-        />
+    <section className="relative w-full overflow-hidden">
+      {/* Responsive height: small devices - 220px, medium - 350px, large - 500px */}
+      <div className="relative w-full h-[220px] sm:h-[350px] md:h-[450px] lg:h-[500px] xl:h-[550px]">
+        <picture className="absolute inset-0 w-full h-full">
+          {/* Desktop Banner */}
+          <source
+            media="(min-width:1024px)"
+            srcSet="/images/banner-desktop.png"
+          />
+          {/* Tablet Banner */}
+          <source
+            media="(min-width:640px)"
+            srcSet="/images/banner-tablet.png"
+          />
+          {/* Mobile Banner */}
+          <Image
+            src="/images/banner-mobile.png"
+            alt="Legacy Lungi Banner"
+            fill
+            className="object-cover w-full h-full"
+            priority
+          />
+        </picture>
       </div>
     </section>
   );
-};
-
-export default Hero;
+}

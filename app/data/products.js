@@ -2,7 +2,7 @@ export const products = [
   {
     // Product 1: Enayetpur Premium Cotton Lungi
     id: "EPCL", // Unique ID added
-    name: "এনায়েতপুর প্রিমিয়াম কটন লুঙ্গি", // Renamed 'name' to 'name_bn'
+    name: "এনায়েতপুর প্রিমিয়াম কটন লুঙ্গি", // Renamed 'name' to 'name_bn'
     slug: "enayetpur-premium-cotton",
     category: "কটন লুঙ্গি", // Category adjusted to Bengali
     regular_price: 550, // 'price' renamed to 'regular_price'
@@ -11,19 +11,21 @@ export const products = [
     is_sold_out: false,
     image: "/images/DL-1.jpg",
     description: "Soft, breathable handloom cotton lungi from Enayetpur.",
+    sizes: ["M", "L", "XL", "XXL"], // Sizes added
   },
   {
     // Product 2: Classic Checked Lungi
     id: "CCL",
     name: "ক্লাসিক চেকার্ড লুঙ্গি",
     slug: "classic-checked",
-    category: "প্রিমিয়াম কালেকশন",
+    category: "প্রিমিয়াম কালেকশন",
     regular_price: 620,
     sale_price: 550,
     discount_percent: 11,
     is_sold_out: false,
     image: "/images/DL-2.jpg",
     description: "Traditional checked design with superior dye quality.",
+    sizes: ["L", "XL", "XXL"], // Sizes added
   },
   {
     // Product 3: Striped Summer Lungi
@@ -37,21 +39,23 @@ export const products = [
     is_sold_out: false,
     image: "/images/DL-3.jpg",
     description: "Lightweight, comfortable, and perfect for everyday use.",
+    sizes: ["S", "M", "L", "XL"], // Sizes added
   },
   {
     // Product 4: One Part Summer Lungi
     id: "OPL",
-    name: "ওয়ান পার্ট সামার লুঙ্গি",
-    slug: "one-part-summer-opl", // !!! DUPLICATE SLUG FIXED: unique kora holo
-    category: "ওয়ান পার্ট",
+    name: "ওয়ান পার্ট সামার লুঙ্গি",
+    slug: "one-part-summer-opl",
+    category: "ওয়ান পার্ট",
     regular_price: 480,
     sale_price: 420,
     discount_percent: 12,
     is_sold_out: false,
     image: "/images/DL-7.jpg",
     description: "Lightweight, comfortable, and perfect for everyday use.",
+    sizes: ["L", "XL"], // Sizes added
   },
-  // Previous Products (Image path updated to existing path)
+  // Previous Products
   {
     id: "LW4",
     name: "প্রিমিয়াম এক্সট্রা লার্জ লুঙ্গি LW 4",
@@ -62,16 +66,20 @@ export const products = [
     discount_percent: 34,
     is_sold_out: false,
     category: "এক্সট্রা লার্জ লুঙ্গি",
+    description: "Lightweight, comfortable, and perfect for everyday use.",
+    sizes: ["XXL", "3XL"], // Sizes added
   },
   {
     id: "KC9",
-    name: "প্রিমিয়াম সফট লুঙ্গি (অফার) KC 9",
+    name: "প্রিমিয়াম সফট লুঙ্গি (অফার) KC 9",
     slug: "premium-soft-lungi-kc9",
-    image: "/images/DL-7.jpg", // <--- FIXED: Using an existing image path
+    image: "/images/DL-7.jpg",
     regular_price: 1200,
     sale_price: 850,
     discount_percent: 29,
     is_sold_out: false,
     category: "সফট লুঙ্গি",
+    description: "Lightweight, comfortable, and perfect for everyday use.",
+    sizes: [" ৫.৫ হাত, লম্বা ৪৮-৫৩ ইঞ্চি, প্রস্থ ৯৫-১০০ ইঞ্চি "], // Sizes added
   },
 ];
