@@ -2,7 +2,7 @@ import connectDB from "@/lib/mongodb";
 import Product from "@/models/Product";
 import { NextResponse } from "next/server";
 
-// ✅ Helper: Name থেকে slug বানানো
+// 🔹 Helper: Name থেকে slug বানানো
 function generateSlug(name) {
   return name
     .toLowerCase()
@@ -11,11 +11,11 @@ function generateSlug(name) {
     .replace(/\s+/g, "-");
 }
 
-// ✅ GET — সব প্রোডাক্ট দেখাবে
+// 🔹 GET — সব প্রোডাক্ট দেখাবে (limit 30)
 export async function GET() {
   try {
     await connectDB();
-    const products = await Product.find().sort({ createdAt: -1 });
+    const products = await Product.find().sort({ createdAt: -1 }).limit(30);
     return NextResponse.json(products, { status: 200 });
   } catch (error) {
     console.error("GET Error:", error);
@@ -26,12 +26,12 @@ export async function GET() {
   }
 }
 
-// ✅ POST — একটাই ছবি সহ প্রোডাক্ট যোগ করা হবে
+// 🔹 POST — নতুন প্রোডাক্ট যোগ করা
 export async function POST(req) {
   try {
     await connectDB();
     const data = await req.json();
-    console.log("🟢 Received from client:", data);
+
     const {
       name,
       sku,
@@ -45,21 +45,14 @@ export async function POST(req) {
       sizes,
     } = data;
 
-    // 🔸 Validation
-    if (!name || !image) {
+    if (!name || !image)
       return NextResponse.json(
-        {
-          success: false,
-          message: "Name এবং Image দুটোই দিতে হবে",
-        },
+        { success: false, message: "Name এবং Image দিতে হবে" },
         { status: 400 }
       );
-    }
 
-    // 🔸 Slug generate
     const slug = generateSlug(name);
 
-    // MongoDB তে ডাটা সংরক্ষণ
     const product = await Product.create({
       name,
       slug,
@@ -73,10 +66,9 @@ export async function POST(req) {
       image,
       sizes,
     });
-    console.log("🟠 Saved product in DB:", product);
 
     return NextResponse.json(
-      { success: true, message: "Product added successfully", product },
+      { success: true, message: "✅ Product added successfully", product },
       { status: 201 }
     );
   } catch (err) {

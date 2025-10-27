@@ -21,10 +21,14 @@ const categories = [
     slug: "stripe-check",
     image: "/images/DL-2.jpg",
   },
-  { name: "ফ্যান্সি লুঙ্গি", slug: "fancy", image: "/images/DL-3.jpg" },
+  { name: "ফ্যান্সি লুঙ্গি", slug: "fancy-lungi", image: "/images/DL-3.jpg" },
   { name: "টু পার্ট লুঙ্গি", slug: "two-part", image: "/images/DL-7.jpg" },
   { name: "এক কালার লুঙ্গি", slug: "one-color", image: "/images/DL-1.jpg" },
-  { name: "সাদা এবং অন্যান্য", slug: "white-other", image: "/images/DL-2.jpg" },
+  {
+    name: "সাদা এবং অন্যান্য",
+    slug: "white-and-others",
+    image: "/images/DL-2.jpg",
+  },
 ];
 
 export default function AddProductPage() {

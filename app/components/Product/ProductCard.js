@@ -7,9 +7,8 @@ import { useState } from "react";
 export default function ProductCard({
   _id,
   name,
-  sku,
-  sale_price, // 🔹 model অনুযায়ী
-  regular_price, // 🔹 model অনুযায়ী
+  sale_price,
+  regular_price,
   image,
   slug,
   discount,
@@ -19,20 +18,18 @@ export default function ProductCard({
   const { addToCart } = useCart();
   const [added, setAdded] = useState(false);
 
-  console.log("🧩 ProductCard slug check:", { name, slug });
-
   // 🔹 main image ঠিক করা
   const mainImage =
     image && image.startsWith("data:image")
-      ? image // base64 হলে সরাসরি show করবে
+      ? image
       : image || "/placeholder.png";
 
   const handleAddToCart = () => {
     addToCart({
       _id,
       name,
-      sale_price: sale_price, // 🔹 cart এ sale_price পাঠাচ্ছি
-      regular_price: regular_price, // 🔹 cart এ regular_price পাঠাচ্ছি
+      sale_price,
+      regular_price,
       image: mainImage,
       slug,
       description,
@@ -46,17 +43,18 @@ export default function ProductCard({
 
   return (
     <div className="relative border rounded-2xl bg-white shadow-md hover:shadow-lg overflow-hidden flex flex-col transition-transform hover:scale-105">
+      {/* 🔹 slug দিয়ে detail page link */}
       <Link
-        href={`/products/${sku.replace("SKU:", "").toLowerCase()}`}
-        className="relative w-full h-48 sm:h-56 md:h-60 lg:h-56 rounded-t-2xl overflow-hidden"
+        href={`/products/${slug}`}
+        className="relative w-full h-48 sm:h-56 md:h-60 lg:h-56 rounded-t-2xl overflow-hidden flex justify-center items-center bg-gray-100"
       >
         <Image
           src={mainImage}
           alt={name || "Product image"}
           fill
-          unoptimized // 🔹 Base64 বা local image দেখানোর জন্য
+          unoptimized
           loading="lazy"
-          className="object-cover cursor-pointer transition-transform duration-300 hover:scale-105"
+          className="object-contain cursor-pointer transition-transform duration-300 hover:scale-105"
         />
 
         {discount && (

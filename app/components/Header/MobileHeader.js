@@ -15,10 +15,10 @@ export default function MobileHeader() {
   const categories = [
     { name: "ডিপ কালেকশন", slug: "deep-collection" },
     { name: "স্ট্রাইপ এবং চেক লুঙ্গি", slug: "stripe-check" },
-    { name: "ফ্যান্সি লুঙ্গি", slug: "fancy" },
+    { name: "ফ্যান্সি লুঙ্গি", slug: "fancy-lungi" },
     { name: "টু পার্ট লুঙ্গি", slug: "two-part" },
-
-    { name: "প্রিমিয়াম পিটলোম লুঙ্গি", slug: "premium" },
+    { name: "এক কালার লুঙ্গি", slug: "one-color" },
+    { name: "সাদা এবং অন্যান্য", slug: "white-and-others" },
   ];
 
   if (!mounted) return null; // prevent SSR mismatch
