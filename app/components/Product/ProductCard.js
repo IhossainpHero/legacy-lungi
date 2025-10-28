@@ -20,9 +20,7 @@ export default function ProductCard({
 
   // 🔹 main image ঠিক করা
   const mainImage =
-    image && image.startsWith("data:image")
-      ? image
-      : image || "/placeholder.png";
+    image && image.startsWith("data:image") ? image : image || null;
 
   const handleAddToCart = () => {
     addToCart({
