@@ -3,7 +3,6 @@ import ProductCard from "@/app/components/Product/ProductCard";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useRef, useState } from "react";
-
 // --- Categories ---
 const categories = [
   { name: "ডিপ কালেকশন", slug: "deep-collection" },
@@ -91,7 +90,7 @@ function DropdownFilter({ title, options, activeValue, onSelect }) {
 // --- Main Category Page ---
 export default function CategoryPage({ params }) {
   const router = useRouter();
-  const { slug } = use(params); // unwrap the promise
+  const { slug } = use(params);
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);

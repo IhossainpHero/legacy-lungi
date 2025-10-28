@@ -3,7 +3,12 @@ import mongoose, { Schema } from "mongoose";
 const productSchema = new Schema({
   name: { type: String, required: true },
   // ✅ এই লাইনটি যোগ করুন
-  slug: { type: String, unique: true },
+  slug: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true, // ✅ ইন্ডেক্স যোগ করা হলো
+  },
   category: String,
   sku: { type: String, required: true, unique: true },
   brand: String,
