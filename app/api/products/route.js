@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import connectDB from "@/lib/mongodb";
 import Product from "@/models/Product";
 import { NextResponse } from "next/server";
@@ -26,12 +29,11 @@ export async function GET() {
   }
 }
 
-// ✅ POST — একটাই ছবি সহ প্রোডাক্ট যোগ করা হবে
+// ✅ POST — নতুন প্রোডাক্ট যোগ করা হবে
 export async function POST(req) {
   try {
     await connectDB();
     const data = await req.json();
-    console.log("🟢 Received from client:", data);
     const {
       name,
       sku,
@@ -45,21 +47,15 @@ export async function POST(req) {
       sizes,
     } = data;
 
-    // 🔸 Validation
     if (!name || !image) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Name এবং Image দুটোই দিতে হবে",
-        },
+        { success: false, message: "Name এবং Image দুটোই দিতে হবে" },
         { status: 400 }
       );
     }
 
-    // 🔸 Slug generate
     const slug = generateSlug(name);
 
-    // MongoDB তে ডাটা সংরক্ষণ
     const product = await Product.create({
       name,
       slug,
@@ -73,7 +69,6 @@ export async function POST(req) {
       image,
       sizes,
     });
-    console.log("🟠 Saved product in DB:", product);
 
     return NextResponse.json(
       { success: true, message: "Product added successfully", product },

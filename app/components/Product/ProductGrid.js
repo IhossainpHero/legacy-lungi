@@ -10,9 +10,11 @@ export default function ProductGrid() {
     const fetchProducts = async () => {
       try {
         const res = await fetch("/api/products", {
-          cache: "force-cache", // ✅ fast load
-          next: { revalidate: 60 }, // ১ মিনিটে refresh
+          cache:
+            process.env.NODE_ENV === "development" ? "no-store" : "force-cache",
+          next: { revalidate: 60 },
         });
+
         if (!res.ok) throw new Error("Failed to fetch products");
         const data = await res.json();
         setProducts(data);
