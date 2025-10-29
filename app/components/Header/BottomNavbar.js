@@ -49,7 +49,11 @@ export default function BottomNavbar() {
           <span className="mt-1 text-xs">Categories</span>
         </button>
 
-        <Link href="/shop" className="flex flex-col items-center text-gray-700">
+        <Link
+          href="/shop"
+          prefetch={true}
+          className="flex flex-col items-center text-gray-700"
+        >
           <ShoppingBag size={22} />
           <span className="mt-1 text-xs">Shop</span>
         </Link>
@@ -102,6 +106,7 @@ export default function BottomNavbar() {
                 <li key={cat.slug}>
                   <Link
                     href={`/category/${cat.slug}`}
+                    prefetch={true}
                     onClick={() => setIsModalOpen(false)}
                     className="block p-3 rounded-xl text-black font-medium hover:bg-gray-100 transition shadow-sm hover:shadow-md"
                   >

@@ -2,7 +2,7 @@
 // এটি একটি Server Component, তাই "use client" দরকার নেই।
 
 import CategoryClientContent from "./CategoryClientContent"; // Client Component আমদানি করা হলো
-
+export const revalidate = 60; // ISR
 // --- Categories and Price Ranges (Static Data) ---
 // ডেটা এখানেও রাখা যায়, অথবা Client Component-এও রাখা যেতে পারে
 const categories = [

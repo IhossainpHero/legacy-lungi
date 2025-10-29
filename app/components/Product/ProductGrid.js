@@ -2,7 +2,7 @@ import ProductCard from "@/app/components/Product/ProductCard";
 
 export default async function ProductGrid() {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products`, {
-    cache: "no-store",
+    cache: "force-cache",
   });
   const products = await res.json();
 
