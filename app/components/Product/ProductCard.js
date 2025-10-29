@@ -1,4 +1,5 @@
 "use client";
+
 import { useCart } from "@/app/context/CartContext";
 import Image from "next/image";
 import Link from "next/link";
@@ -18,9 +19,7 @@ export default function ProductCard({
   const { addToCart } = useCart();
   const [added, setAdded] = useState(false);
 
-  // 🔹 main image ঠিক করা
-  const mainImage =
-    image && image.startsWith("data:image") ? image : image || null;
+  const mainImage = image?.startsWith("data:image") ? image : image || null;
 
   const handleAddToCart = () => {
     addToCart({
@@ -41,10 +40,9 @@ export default function ProductCard({
 
   return (
     <div className="relative border rounded-2xl bg-white shadow-md hover:shadow-lg overflow-hidden flex flex-col transition-transform hover:scale-105">
-      {/* 🔹 slug দিয়ে detail page link */}
       <Link
         href={`/products/${slug}`}
-        className="relative w-full h-48 sm:h-56 md:h-60 lg:h-56 rounded-t-2xl overflow-hidden flex justify-center items-center bg-gray-100"
+        className="relative w-full h-56 sm:h-64 md:h-72 lg:h-64 rounded-t-2xl overflow-hidden flex justify-center items-center bg-gray-100"
       >
         <Image
           src={mainImage}
@@ -54,7 +52,6 @@ export default function ProductCard({
           loading="lazy"
           className="object-contain cursor-pointer transition-transform duration-300 hover:scale-105"
         />
-
         {discount && (
           <span className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-lg shadow-md">
             -{discount}%
