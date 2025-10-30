@@ -47,11 +47,13 @@ export default function ProductCard({
         <Image
           src={mainImage}
           alt={name || "Product image"}
-          fill
+          width={175}
+          height={175}
           unoptimized
           loading="lazy"
-          className="object-contain cursor-pointer transition-transform duration-300 hover:scale-105"
+          className="object-contain w-[175px] h-[175px]"
         />
+
         {discount && (
           <span className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-lg shadow-md">
             -{discount}%
