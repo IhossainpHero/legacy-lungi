@@ -31,86 +31,102 @@ export default function ProductDetails({ product }) {
   return (
     <div className="p-6 sm:p-10 max-w-6xl mx-auto bg-white shadow-lg rounded-2xl mt-8">
       {/* Breadcrumb */}
-      <div className="text-sm text-gray-500 mb-4">
+      <div className="text-sm text-gray-500 mb-4 flex flex-wrap items-center gap-1">
         <a href="/" className="text-blue-600 hover:underline">
           Home
-        </a>{" "}
-        / <span className="ml-1">{product.category || "Category"}</span>
+        </a>
+        <span>/</span>
+        <span>{product.category || "Category"}</span>
+        <span>/</span>
+        <span className="text-gray-700 text-xs sm:text-sm font-medium">
+          {product.name}
+        </span>
       </div>
 
       {/* Product Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         {/* 🔹 Full Responsive Product Image */}
-        <div className="relative w-full max-w-sm sm:max-w-md md:max-w-lg aspect-square rounded-2xl overflow-hidden shadow-md">
+        <div className="relative w-full h-[450px] sm:h-[550px] md:h-[600px] rounded-2xl overflow-hidden shadow-md">
           <Image
             src={product.image || "/placeholder.png"}
             alt={product.name}
             fill
             unoptimized
             loading="lazy"
-            className="object-cover cursor-pointer transition-transform duration-300 hover:scale-105"
+            className="object-cover object-center cursor-pointer transition-transform duration-300 hover:scale-105"
           />
         </div>
 
-        {/* Product Info */}
-        <div>
-          <h2 className="text-2xl lg:text-3xl font-bold">{product.name}</h2>
-          <div className="mt-3">
-            {product.regular_price && (
-              <span className="line-through text-gray-400 mr-2">
-                ৳ {product.regular_price}
+        {/* Product Info + Contact for large screens */}
+        <div className="flex flex-col justify-between gap-6">
+          <div>
+            <h2 className="text-2xl lg:text-3xl text-gray-700 font-bold">
+              {product.name}
+            </h2>
+            <div className="mt-3">
+              {product.regular_price && (
+                <span className="line-through text-gray-400 mr-2">
+                  ৳ {product.regular_price}
+                </span>
+              )}
+              <span className="text-3xl font-semibold text-green-600">
+                ৳ {product.sale_price}
               </span>
-            )}
-            <span className="text-3xl font-semibold text-green-600">
-              ৳ {product.sale_price}
-            </span>
-          </div>
-
-          {product.sizes?.length > 0 && (
-            <p className="text-gray-800 mt-2 text-sm sm:text-base">
-              সাইজ: {product.sizes.join(", ")}
-            </p>
-          )}
-
-          {/* Quantity & Buttons */}
-          <div className="flex items-center gap-2 mt-6 w-full flex-nowrap">
-            <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full text-sm">
-              <button
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                className="bg-gray-200 text-gray-800 rounded-full p-1 hover:bg-gray-300 transition text-xs"
-              >
-                <FaMinus className="w-3 h-3" />
-              </button>
-              <span className="text-sm text-gray-900 font-bold min-w-[20px] text-center">
-                {quantity}
-              </span>
-              <button
-                onClick={() => setQuantity((q) => q + 1)}
-                className="bg-gray-200 text-gray-800 rounded-full p-1 hover:bg-gray-300 transition text-xs"
-              >
-                <FaPlus className="w-3 h-3" />
-              </button>
             </div>
 
-            <button
-              onClick={handleAddToCart}
-              className="flex-1 bg-blue-700 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition shadow-md text-xs whitespace-nowrap"
-            >
-              কার্টে যোগ করুন
-            </button>
+            {product.sizes?.length > 0 && (
+              <p className="text-gray-800 mt-2 text-sm sm:text-base">
+                সাইজ: {product.sizes.join(", ")}
+              </p>
+            )}
 
-            <button
-              onClick={handleOrderNow}
-              className="flex-1 bg-green-700 text-white py-2 rounded-lg font-semibold hover:bg-green-800 transition shadow-md text-xs whitespace-nowrap"
-            >
-              অর্ডার করুন
-            </button>
+            {/* Quantity & Buttons */}
+            <div className="flex items-center gap-2 mt-6 w-full flex-nowrap">
+              <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full text-sm">
+                <button
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  className="bg-gray-200 text-gray-800 rounded-full p-1 hover:bg-gray-300 transition text-xs"
+                >
+                  <FaMinus className="w-3 h-3" />
+                </button>
+                <span className="text-sm text-gray-900 font-bold min-w-[20px] text-center">
+                  {quantity}
+                </span>
+                <button
+                  onClick={() => setQuantity((q) => q + 1)}
+                  className="bg-gray-200 text-gray-800 rounded-full p-1 hover:bg-gray-300 transition text-xs"
+                >
+                  <FaPlus className="w-3 h-3" />
+                </button>
+              </div>
+
+              <button
+                onClick={handleAddToCart}
+                className="flex-1 bg-blue-700 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition shadow-md text-xs whitespace-nowrap"
+              >
+                কার্টে যোগ করুন
+              </button>
+
+              <button
+                onClick={handleOrderNow}
+                className="flex-1 bg-green-700 text-white py-2 rounded-lg font-semibold hover:bg-green-800 transition shadow-md text-xs whitespace-nowrap"
+              >
+                অর্ডার করুন
+              </button>
+            </div>
+          </div>
+
+          {/* ✅ Contact Section for large screens (Right side beside image) */}
+          <div className="hidden lg:block">
+            <ContactSection />
           </div>
         </div>
       </div>
 
-      {/* Contact Section */}
-      <ContactSection />
+      {/* ✅ Contact Section for small & medium screens (below image) */}
+      <div className="block lg:hidden mt-10">
+        <ContactSection />
+      </div>
 
       {/* Specification Table */}
       <SpecificationTable />
