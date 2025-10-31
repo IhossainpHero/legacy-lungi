@@ -2,12 +2,15 @@
 
 import { useCart } from "@/app/context/CartContext";
 import Image from "next/image";
+import { useRouter } from "next/navigation"; // ✅ ঠিকভাবে Import করা হয়েছে
 import { useState } from "react";
 import { FaMinus, FaPhoneAlt, FaPlus, FaWhatsapp } from "react-icons/fa";
 
 export default function ProductDetails({ product }) {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
+  const [added, setAdded] = useState(false);
+  const router = useRouter(); // ✅ এখানে router define করা হয়েছে
 
   const handleAddToCart = () => {
     addToCart({
@@ -20,12 +23,29 @@ export default function ProductDetails({ product }) {
       description: product.description,
       discount: product.discount,
       selectedSize: product.sizes?.[0] || undefined,
+      quantity,
     });
-    alert(`${quantity} ${product.name} কার্টে যোগ হয়েছে!`);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
   };
 
   const handleOrderNow = () => {
-    alert(`অর্ডার হয়েছে ${quantity} ${product.name} এর জন্য!`);
+    // ✅ কার্টে যোগ করা
+    addToCart({
+      _id: product._id,
+      name: product.name,
+      sale_price: product.sale_price,
+      regular_price: product.regular_price,
+      image: product.image,
+      slug: product.slug,
+      description: product.description,
+      discount: product.discount,
+      selectedSize: product.sizes?.[0] || undefined,
+      quantity,
+    });
+
+    // ✅ Checkout পেজে রিডাইরেক্ট করা
+    router.push("/checkout");
   };
 
   return (
@@ -102,10 +122,21 @@ export default function ProductDetails({ product }) {
 
               <button
                 onClick={handleAddToCart}
-                className="flex-1 bg-blue-700 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition shadow-md text-xs whitespace-nowrap"
+                disabled={added}
+                className={`flex-1 bg-blue-700 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition shadow-md text-xs whitespace-nowrap
+                  ${
+                    added
+                      ? "bg-gray-400 cursor-not-allowed text-white"
+                      : "bg-[#063238] text-white hover:bg-blue-600"
+                  }`}
               >
-                কার্টে যোগ করুন
+                {added ? "Added!" : "কার্টে যোগ করুন"}
               </button>
+              {added && (
+                <div className="absolute top-0 right-0 mt-1 mr-1 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-lg shadow-md">
+                  ✅ প্রোডাক্টটি কার্টে যোগ হয়েছে!
+                </div>
+              )}
 
               <button
                 onClick={handleOrderNow}

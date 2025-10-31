@@ -46,7 +46,7 @@ async function fetchCategoryProducts(slug) {
 
 // ✅ মূল Server Component
 export default async function CategoryPage({ params }) {
-  const { slug } = params;
+  const { slug } = await params;
 
   // 1️⃣ সার্ভার-সাইডে ডেটা ফেচিং
   const initialProducts = await fetchCategoryProducts(slug);

@@ -39,12 +39,22 @@ export default function ProductCard({
   };
 
   return (
-    <div className="relative border rounded-2xl bg-white shadow-md hover:shadow-lg overflow-hidden flex flex-col transition-transform hover:scale-105 w-full max-w-[320px] mx-auto">
-      {/* 🖼️ Image Section with small gap */}
+    <div
+      className="
+      relative border rounded-2xl bg-white shadow-md hover:shadow-lg overflow-hidden 
+      flex flex-col transition-transform hover:scale-105 
+      w-[100%] sm:w-[85%] md:w-full max-w-[320px] mx-auto
+      "
+    >
+      {/* 🖼️ Image Section */}
       <div className="p-1 pb-0">
         <Link
           href={`/products/${slug}`}
-          className="relative w-full h-56 sm:h-60 md:h-64 rounded-xl overflow-hidden block"
+          className="
+          relative w-full 
+          h-48 xs:h-52 sm:h-56 md:h-60 
+          rounded-xl overflow-hidden block
+          "
         >
           <Image
             src={mainImage}
@@ -64,7 +74,7 @@ export default function ProductCard({
       </div>
 
       {/* 🛒 Product Details */}
-      <div className="p-3 flex flex-col  flex-1 relative">
+      <div className="p-3 flex flex-col flex-1 relative">
         <Link href={`/products/${slug}`}>
           <h3 className="font-medium text-gray-800 text-sm sm:text-[15px] line-clamp-1 cursor-pointer hover:text-blue-600">
             {name}

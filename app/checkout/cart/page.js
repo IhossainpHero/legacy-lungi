@@ -1,10 +1,12 @@
 "use client";
 import { useCart } from "@/app/context/CartContext";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
   const { cartItems, removeFromCart, updateQuantity, totalQuantity } =
     useCart();
+  const router = useRouter();
 
   // 🧮 মোট দাম গণনা
   const subtotal = cartItems.reduce(
@@ -13,10 +15,15 @@ export default function CartPage() {
   );
 
   // 🚚 শিপিং: যদি ২টির বেশি আইটেম হয় → ফ্রি
-  const shipping = totalQuantity > 2 ? 0 : 120;
+  const shipping = totalQuantity >= 2 ? 0 : 120;
 
   // 💰 মোট টাকা
   const total = subtotal + shipping;
+
+  // ✅ চেকআউট redirect
+  const handleCheckout = () => {
+    router.push("/checkout");
+  };
 
   return (
     <div className="min-h-screen pt-24 px-4 md:px-8 bg-gray-100">
@@ -30,13 +37,11 @@ export default function CartPage() {
         </p>
       ) : (
         <div className="flex flex-col gap-6 max-w-3xl mx-auto">
-          {/* 🧾 কার্টের পণ্যসমূহ */}
           {cartItems.map((item) => (
             <div
               key={item._id + (item.selectedSize || "")}
               className="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 relative"
             >
-              {/* ❌ রিমুভ বাটন */}
               <button
                 onClick={() => removeFromCart(item._id, item.selectedSize)}
                 className="absolute top-2 right-2 bg-red-100 text-red-600 rounded-full w-7 h-7 flex items-center justify-center font-bold hover:bg-red-200 transition"
@@ -44,7 +49,6 @@ export default function CartPage() {
                 ✕
               </button>
 
-              {/* 🖼️ প্রোডাক্ট ইমেজ */}
               <Link href={`/products/${item.slug}`}>
                 <img
                   src={item.image}
@@ -53,13 +57,11 @@ export default function CartPage() {
                 />
               </Link>
 
-              {/* 📄 বিস্তারিত তথ্য */}
               <div className="flex-1 flex flex-col gap-1">
                 <h2 className="font-semibold text-gray-900 text-lg leading-tight">
                   {item.name}
                 </h2>
 
-                {/* সাইজ */}
                 {item.selectedSize && (
                   <p className="text-sm text-gray-600">
                     সাইজ:{" "}
@@ -69,7 +71,6 @@ export default function CartPage() {
                   </p>
                 )}
 
-                {/* দাম */}
                 <p className="text-gray-700 text-sm">
                   মূল্য:{" "}
                   <span className="font-medium text-black">
@@ -77,7 +78,6 @@ export default function CartPage() {
                   </span>
                 </p>
 
-                {/* 🔢 পরিমাণ নিয়ন্ত্রণ */}
                 <div className="flex items-center gap-2 mt-1">
                   <button
                     onClick={() =>
@@ -100,7 +100,6 @@ export default function CartPage() {
                   </button>
                 </div>
 
-                {/* সাবটোটাল */}
                 <p className="text-sm text-gray-600 font-medium mt-1">
                   উপ-মোট:{" "}
                   <span className="text-black font-semibold">
@@ -111,7 +110,6 @@ export default function CartPage() {
             </div>
           ))}
 
-          {/* 💳 সারসংক্ষেপ */}
           <div className="bg-white p-6 rounded-2xl shadow-md mt-2">
             <div className="flex justify-between text-gray-800 font-medium">
               <span>উপ-মোট</span>
@@ -126,7 +124,11 @@ export default function CartPage() {
               <span>৳{total}</span>
             </div>
 
-            <button className="mt-5 w-full bg-[#063238] text-white py-3 rounded-xl font-semibold hover:bg-[#074652] shadow-md hover:shadow-lg transition">
+            {/* ✅ Checkout Button */}
+            <button
+              onClick={handleCheckout}
+              className="mt-5 w-full bg-[#063238] text-white py-3 rounded-xl font-semibold hover:bg-[#074652] shadow-md hover:shadow-lg transition"
+            >
               চেকআউট করুন
             </button>
           </div>

@@ -1,17 +1,16 @@
 import ProductCard from "@/app/components/Product/ProductCard";
 
 export default async function ProductGrid() {
-  // Base URL environment অনুযায়ী সেট করা
   const API_BASE_URL =
     process.env.NODE_ENV === "development"
-      ? "http://localhost:3000" // development-এ local server
-      : process.env.NEXT_PUBLIC_API_URL; // production-এ vercel link
+      ? "http://localhost:3000"
+      : process.env.NEXT_PUBLIC_API_URL;
 
   let products = [];
 
   try {
     const res = await fetch(`${API_BASE_URL}/api/products`, {
-      next: { revalidate: 60 }, // cache 60 সেকেন্ড
+      next: { revalidate: 60 },
     });
 
     if (!res.ok) {
@@ -32,7 +31,18 @@ export default async function ProductGrid() {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5 p-4">
+    <div
+      className="
+        grid 
+        grid-cols-2 
+        sm:grid-cols-2 
+        md:grid-cols-3 
+        lg:grid-cols-4 
+        gap-x-3 sm:gap-x-4 md:gap-x-5 
+        gap-y-5
+        px-2 sm:px-3 md:px-4
+        "
+    >
       {products.map((p) => (
         <ProductCard
           key={p._id + (p.sizes?.[0] || "")}
