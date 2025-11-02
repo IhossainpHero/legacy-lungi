@@ -7,16 +7,31 @@ const CartContext = createContext();
 
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
+  const [shippingLocation, setShippingLocation] = useState("outside"); // default outside Dhaka
+  const [shippingCharge, setShippingCharge] = useState(120); // default outside
 
+  // 🧩 Load saved data
   useEffect(() => {
     const savedCart = localStorage.getItem("cart");
+    const savedLocation = localStorage.getItem("shippingLocation");
+    const savedCharge = localStorage.getItem("shippingCharge");
+
     if (savedCart) setCartItems(JSON.parse(savedCart));
+    if (savedLocation) setShippingLocation(savedLocation);
+    if (savedCharge) setShippingCharge(Number(savedCharge));
   }, []);
 
+  // 💾 Save to localStorage
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cartItems));
   }, [cartItems]);
 
+  useEffect(() => {
+    localStorage.setItem("shippingLocation", shippingLocation);
+    localStorage.setItem("shippingCharge", shippingCharge.toString());
+  }, [shippingLocation, shippingCharge]);
+
+  // 🛒 Add to cart
   const addToCart = (product) => {
     setCartItems((prev) => {
       const existingItem = prev.find(
@@ -43,6 +58,7 @@ export function CartProvider({ children }) {
     });
   };
 
+  // ❌ Remove item
   const removeFromCart = (_id, selectedSize) => {
     setCartItems((prev) =>
       prev.filter(
@@ -54,12 +70,13 @@ export function CartProvider({ children }) {
       )
     );
 
-    toast.info("❌ কার্ট থেকে প্রোডাক্টটি সরিয়ে দেওয়া হয়েছে!", {
+    toast.info("❌ কার্ট থেকে প্রোডাক্টটি সরানো হয়েছে!", {
       position: "top-center",
       autoClose: 2000,
     });
   };
 
+  // 🔢 Update quantity
   const updateQuantity = (_id, delta, selectedSize) => {
     setCartItems((prev) =>
       prev
@@ -72,7 +89,23 @@ export function CartProvider({ children }) {
     );
   };
 
+  // 🧮 Totals
   const totalQuantity = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const subtotal = cartItems.reduce(
+    (acc, item) => acc + (item.sale_price || 0) * (item.quantity || 0),
+    0
+  );
+
+  // 🚚 Shipping logic
+  useEffect(() => {
+    if (totalQuantity >= 2) {
+      setShippingCharge(0); // free shipping
+    } else {
+      setShippingCharge(shippingLocation === "inside" ? 80 : 120);
+    }
+  }, [shippingLocation, totalQuantity]);
+
+  const total = subtotal + shippingCharge;
 
   const clearCart = () => {
     setCartItems([]);
@@ -90,6 +123,11 @@ export function CartProvider({ children }) {
         removeFromCart,
         updateQuantity,
         totalQuantity,
+        subtotal,
+        shippingLocation,
+        setShippingLocation,
+        shippingCharge,
+        total,
         clearCart,
       }}
     >

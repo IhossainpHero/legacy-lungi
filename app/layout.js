@@ -19,7 +19,9 @@ export default function RootLayout({ children }) {
         <CartProvider>
           {/* Header */}
           <div className="hidden md:block">
-            <DesktopNavbar />
+            <ClientOnly>
+              <DesktopNavbar />
+            </ClientOnly>
           </div>
           <div className="md:hidden">
             <ClientOnly>
