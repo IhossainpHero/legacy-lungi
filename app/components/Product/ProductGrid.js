@@ -31,30 +31,19 @@ export default async function ProductGrid() {
   }
 
   return (
-    <div
-      className="
-        grid 
-        grid-cols-2 
-        sm:grid-cols-2 
-        md:grid-cols-3 
-        lg:grid-cols-4 
-        gap-x-3 sm:gap-x-4 md:gap-x-5 
-        gap-y-5
-        px-2 sm:px-3 md:px-4
-        "
-    >
+    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 sm:gap-x-4 md:gap-x-5 gap-y-5 px-2 sm:px-3 md:px-4">
       {products.map((p) => (
         <ProductCard
-          key={p._id + (p.sizes?.[0] || "")}
+          key={p._id}
           _id={p._id}
           name={p.name}
           sale_price={p.sale_price}
           regular_price={p.regular_price}
-          image={p.image}
+          image={p.main_image || p.images?.[0]} // <-- main_image ব্যবহার করুন
           slug={p.slug || p.sku}
           discount={p.discount}
           description={p.description}
-          sizes={p.sizes}
+          sizes={p.sizes || []}
           sku={p.sku}
         />
       ))}

@@ -1,5 +1,4 @@
 "use client";
-
 import { useCart } from "@/app/context/CartContext";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,7 +18,7 @@ export default function ProductCard({
   const { addToCart } = useCart();
   const [added, setAdded] = useState(false);
 
-  const mainImage = image?.startsWith("data:image") ? image : image || null;
+  const mainImage = image || "/placeholder.png"; // <-- যদি image না থাকে
 
   const handleAddToCart = () => {
     addToCart({
@@ -39,22 +38,11 @@ export default function ProductCard({
   };
 
   return (
-    <div
-      className="
-      relative border rounded-2xl bg-white shadow-md hover:shadow-lg overflow-hidden 
-      flex flex-col transition-transform hover:scale-105 
-      w-[100%] sm:w-[85%] md:w-full max-w-[320px] mx-auto
-      "
-    >
-      {/* 🖼️ Image Section */}
+    <div className="relative border rounded-2xl bg-white shadow-md hover:shadow-lg overflow-hidden flex flex-col transition-transform hover:scale-105 w-[100%] sm:w-[85%] md:w-full max-w-[320px] mx-auto">
       <div className="p-1 pb-0">
         <Link
           href={`/products/${slug}`}
-          className="
-          relative w-full 
-          h-48 xs:h-52 sm:h-56 md:h-60 
-          rounded-xl overflow-hidden block
-          "
+          className="relative w-full h-48 xs:h-52 sm:h-56 md:h-60 rounded-xl overflow-hidden block"
         >
           <Image
             src={mainImage}
@@ -64,7 +52,6 @@ export default function ProductCard({
             loading="lazy"
             className="object-cover w-full h-full rounded-xl"
           />
-
           {discount && (
             <span className="absolute top-2 left-2 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-md">
               -{discount}%
@@ -73,7 +60,6 @@ export default function ProductCard({
         </Link>
       </div>
 
-      {/* 🛒 Product Details */}
       <div className="p-3 flex flex-col flex-1 relative">
         <Link href={`/products/${slug}`}>
           <h3 className="font-medium text-gray-800 text-sm sm:text-[15px] line-clamp-1 cursor-pointer hover:text-blue-600">

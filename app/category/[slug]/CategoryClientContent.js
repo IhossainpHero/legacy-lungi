@@ -24,7 +24,7 @@ const PRICE_RANGES = [
   { label: "৳1501+", min: 1501, max: 99999 },
 ];
 
-// --- DropdownFilter Component (Client Component) ---
+// --- DropdownFilter Component ---
 function DropdownFilter({ title, options, activeValue, onSelect }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -89,7 +89,7 @@ function DropdownFilter({ title, options, activeValue, onSelect }) {
   );
 }
 
-// --- Category Client Content (Main Component) ---
+// --- Category Client Content ---
 export default function CategoryClientContent({
   initialProducts,
   initialSlug,
@@ -97,34 +97,26 @@ export default function CategoryClientContent({
 }) {
   const router = useRouter();
 
-  // ❌ কোনো data fetching useEffect নেই
-  // ✅ initialProducts দিয়ে state শুরু
-  const [products] = useState(initialProducts); // সার্ভার থেকে পাওয়া ডেটা
-
-  // ক্যাটেগরি ও প্রাইস রেঞ্জ state management
+  const [products] = useState(initialProducts);
   const [selectedCategory, setSelectedCategory] = useState(
     categories.find((c) => c.slug === initialSlug) || categories[0]
   );
   const [selectedPriceRange, setSelectedPriceRange] = useState(PRICE_RANGES[0]);
 
-  // Handle category change (Client-side navigation)
   const handleSelectCategory = (cat) => {
     setSelectedCategory(cat);
     if (cat.slug !== initialSlug) {
-      // Next.js-এর রাউটার ব্যবহার করে অন্য ক্যাটেগরিতে নেভিগেট করা
       router.push(`/category/${cat.slug}`);
     }
   };
 
-  // Filter products by price range (Client-side filtering)
+  // ✅ Filter products by price
   const filteredProducts = products.filter(
     (p) =>
       p.sale_price >= selectedPriceRange.min &&
       p.sale_price <= selectedPriceRange.max
   );
 
-  // যেহেতু ডেটা ইতিমধ্যেই সার্ভার থেকে ফেচ করা, তাই loading state দরকার নেই।
-  // Error handling: যদি সার্ভার থেকে initialProducts খালি আসে
   const hasError = !products || products.length === 0;
 
   return (
@@ -162,7 +154,6 @@ export default function CategoryClientContent({
       </div>
 
       {/* Products */}
-      {/* ⚠️ Loading skeleton removed: সার্ভার কম্পোনেন্ট ডেটা না পাওয়া পর্যন্ত অপেক্ষা করবে। */}
       {hasError ? (
         <p className="text-center text-gray-500 py-10">
           কোন পণ্য পাওয়া যায়নি 😞
@@ -171,12 +162,13 @@ export default function CategoryClientContent({
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredProducts.map((product) => (
             <ProductCard
-              key={product._id + (product.sizes?.[0] || "")}
+              key={product._id}
               _id={product._id}
               name={product.name || "No Name"}
               sale_price={product.sale_price || 0}
               regular_price={product.regular_price || 0}
-              image={product.image || ""}
+              // ✅ শুধু main_image দেখানো হবে
+              image={product.main_image || product.image || "/placeholder.png"}
               slug={product.slug || product.sku || ""}
               discount={product.discount || 0}
               description={product.description || ""}

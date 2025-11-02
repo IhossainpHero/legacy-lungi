@@ -3,27 +3,28 @@ import Product from "@/models/Product";
 import { notFound } from "next/navigation";
 import ProductDetails from "./productDetails";
 
-export const revalidate = 60;
+export const revalidate = 60; // ISR: 60 seconds
 
+// 🔹 Static Params for SSG
 export async function generateStaticParams() {
   await connectDB();
+
   const products = await Product.find({}, "slug").lean();
   return products.map((p) => ({ slug: p.slug }));
 }
 
+// 🔹 Product Page
 export default async function ProductPage({ params }) {
-  const start = Date.now(); // ✅ সময় শুরু
+  const { slug } = params; // params সরাসরি destructure
 
-  const { slug } = await params;
   await connectDB();
 
   const product = await Product.findOne({ slug }).lean();
 
-  // const end = Date.now(); // ✅ সময় শেষ
-  // console.log(`🕒 [DEV] Product fetch took: ${end - start}ms`);
-
   if (!product) return notFound();
 
+  // ✅ MongoDB থেকে আসা object কে plain JS object হিসেবে stringify-parse
   const plainProduct = JSON.parse(JSON.stringify(product));
+
   return <ProductDetails product={plainProduct} />;
 }

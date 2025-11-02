@@ -9,32 +9,22 @@ import {
 } from "@/app/components/UI/Card";
 import { Input } from "@/app/components/UI/input";
 import { Label } from "@/app/components/UI/label";
-import imageCompression from "browser-image-compression";
 import Image from "next/image";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
 const categories = [
-  { name: "ডিপ কালেকশন", slug: "deep-collection", image: "/images/DL-1.jpg" },
-  {
-    name: "স্ট্রাইপ এবং চেক লুঙ্গি",
-    slug: "stripe-check",
-    image: "/images/DL-2.jpg",
-  },
-  { name: "ফ্যান্সি লুঙ্গি", slug: "fancy-lungi", image: "/images/DL-3.jpg" },
-  { name: "টু পার্ট লুঙ্গি", slug: "two-part", image: "/images/DL-7.jpg" },
-  { name: "এক কালার লুঙ্গি", slug: "one-color", image: "/images/DL-1.jpg" },
-  {
-    name: "সাদা এবং অন্যান্য",
-    slug: "white-and-others",
-    image: "/images/DL-2.jpg",
-  },
+  { name: "ডিপ কালেকশন", slug: "deep-collection" },
+  { name: "স্ট্রাইপ এবং চেক লুঙ্গি", slug: "stripe-check" },
+  { name: "ফ্যান্সি লুঙ্গি", slug: "fancy-lungi" },
+  { name: "টু পার্ট লুঙ্গি", slug: "two-part" },
+  { name: "এক কালার লুঙ্গি", slug: "one-color" },
+  { name: "সাদা এবং অন্যান্য", slug: "white-and-others" },
 ];
 
 export default function AddProductPage() {
   const [name, setName] = useState("");
   const [sku, setSku] = useState("");
-  const [image, setImage] = useState(null);
   const [category, setCategory] = useState(categories[0].slug);
   const [sizes, setSizes] = useState("");
   const [brand, setBrand] = useState("");
@@ -45,49 +35,69 @@ export default function AddProductPage() {
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // ---------------- Image Upload ----------------
+  // Images state
+  const [images, setImages] = useState([]); // Cloudinary URLs
+  const [previews, setPreviews] = useState([]); // Local previews
+  const [mainImageIndex, setMainImageIndex] = useState(0);
+
+  // ✅ Image Upload handler
   const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
     setUploading(true);
+    const uploadedUrls = [];
+    const localPreviews = [];
 
     try {
-      const options = {
-        maxSizeMB: 0.05,
-        maxWidthOrHeight: 750,
-        useWebWorker: true,
-        fileType: "image/webp",
-        initialQuality: 0.7,
-      };
-      const compressedFile = await imageCompression(file, options);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImage(reader.result);
-        toast.success("✅ Image ready for preview!");
-        setUploading(false);
-      };
-      reader.readAsDataURL(compressedFile);
-    } catch (error) {
-      console.error(error);
-      toast.error("❌ Error during compression!");
+      for (let file of files) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.urls?.length) {
+          uploadedUrls.push(...data.urls);
+          localPreviews.push(URL.createObjectURL(file));
+        } else {
+          toast.error("❌ Some images failed to upload!");
+        }
+      }
+
+      if (uploadedUrls.length > 0) {
+        setImages((prev) => [...prev, ...uploadedUrls]);
+        setPreviews((prev) => [...prev, ...localPreviews]);
+        toast.success("✅ Images uploaded successfully!");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("❌ Upload error!");
+    } finally {
       setUploading(false);
     }
   };
 
-  // ---------------- Add Product ----------------
-  const handleAdd = async (e) => {
+  const handleSetMainImage = (index) => setMainImageIndex(index);
+
+  // ✅ Add product handler
+  const handleAddProduct = async (e) => {
     e.preventDefault();
 
-    if (!image) return toast.error("Please upload an image first!");
     if (!name) return toast.error("Product name is required!");
     if (!sku) return toast.error("SKU is required!");
+    if (!images.length) return toast.error("At least 1 image is required!");
 
     setSubmitting(true);
 
     const sizeArray = sizes
       .split(",")
       .map((s) => s.trim())
-      .filter((s) => s.length > 0);
+      .filter(Boolean);
 
     const productData = {
       name,
@@ -98,7 +108,8 @@ export default function AddProductPage() {
       sale_price: Number(salePrice) || 0,
       description,
       discount: Number(discount) || 0,
-      image,
+      main_image: images[mainImageIndex],
+      images,
       sizes: sizeArray,
     };
 
@@ -113,32 +124,35 @@ export default function AddProductPage() {
 
       if (res.ok) {
         toast.success("✅ Product added successfully!");
-        console.log("Saved Product:", result);
-
-        // ফর্ম রিসেট
-        setName("");
-        setSku("");
-        setCategory(categories[0].slug);
-        setBrand("");
-        setRegularPrice("");
-        setSalePrice("");
-        setDescription("");
-        setDiscount("");
-        setImage(null);
-        setSizes("");
+        resetForm();
       } else {
         toast.error(result.message || "❌ Failed to add product!");
       }
-    } catch (error) {
-      console.error("Error adding product:", error);
+    } catch (err) {
+      console.error(err);
       toast.error("❌ Something went wrong!");
     } finally {
       setSubmitting(false);
     }
   };
 
+  const resetForm = () => {
+    setName("");
+    setSku("");
+    setCategory(categories[0].slug);
+    setBrand("");
+    setRegularPrice("");
+    setSalePrice("");
+    setDescription("");
+    setDiscount("");
+    setImages([]);
+    setPreviews([]);
+    setMainImageIndex(0);
+    setSizes("");
+  };
+
   return (
-    <div className="min-h-screen py-10 sm:px-6 lg:px-8 bg-gray-100">
+    <div className="min-h-screen py-10 sm:px-6 lg:px-8 bg-gray-100 text-gray-900">
       <Card className="max-w-3xl mx-auto shadow-xl rounded-2xl border border-gray-200">
         <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-t-2xl text-white p-6">
           <CardTitle className="text-3xl font-extrabold">
@@ -149,137 +163,141 @@ export default function AddProductPage() {
           </p>
         </CardHeader>
 
-        <CardContent className="space-y-6 p-6 bg-white rounded-b-2xl">
-          <form onSubmit={handleAdd} className="space-y-6">
-            {/* Image Upload */}
-            <div className="flex flex-col text-gray-700 gap-4">
-              <Label>Upload Product Image</Label>
+        <CardContent className="space-y-6 p-6 bg-white rounded-b-2xl text-gray-900">
+          <form onSubmit={handleAddProduct} className="space-y-6">
+            {/* Images Upload */}
+            <div className="flex flex-col gap-2">
+              <Label>Upload Images</Label>
               <Input
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handleImageUpload}
               />
               {uploading && (
-                <p className="text-blue-500 text-sm mt-1">Processing...</p>
+                <p className="text-blue-600 text-sm">Uploading...</p>
               )}
-              {image && (
-                <Image
-                  src={image}
-                  alt="preview"
-                  width={150}
-                  height={150}
-                  className="rounded-lg mt-2 object-cover border"
-                />
+
+              {previews.length > 0 && (
+                <div className="flex gap-2 mt-2">
+                  {previews.map((src, idx) => (
+                    <div key={idx} className="relative">
+                      <Image
+                        src={src}
+                        alt={`preview-${idx}`}
+                        width={80}
+                        height={80}
+                        className={`rounded border cursor-pointer ${
+                          idx === mainImageIndex
+                            ? "border-blue-500"
+                            : "border-gray-300"
+                        }`}
+                        onClick={() => handleSetMainImage(idx)}
+                      />
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
 
-            {/* Product Name */}
-            <div className="flex flex-col">
-              <Label>Product Name</Label>
-              <Input
-                placeholder="Enter product name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-
-            {/* SKU */}
-            <div className="flex flex-col">
-              <Label>SKU</Label>
-              <Input
-                placeholder="Enter SKU"
-                value={sku}
-                onChange={(e) => setSku(e.target.value)}
-              />
-            </div>
-
-            {/* Category */}
-            <div className="flex flex-col">
-              <Label>Category</Label>
-              <select
-                className="border border-gray-300 rounded-md p-2 text-black"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              >
-                {categories.map((cat) => (
-                  <option key={cat.slug} value={cat.slug}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Sizes */}
-            <div className="flex flex-col">
-              <Label>Sizes</Label>
-              <Input
-                placeholder="e.g., 4 Haat, 5 Haat"
-                value={sizes}
-                onChange={(e) => setSizes(e.target.value)}
-              />
-            </div>
-
-            {/* Brand */}
-            <div className="flex flex-col">
-              <Label>Brand</Label>
-              <Input
-                placeholder="Brand name"
-                value={brand}
-                onChange={(e) => setBrand(e.target.value)}
-              />
-            </div>
-
-            {/* Prices */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Product Details */}
+            <div className="grid gap-4">
               <div className="flex flex-col">
-                <Label>Old Price</Label>
+                <Label>Product Name</Label>
                 <Input
-                  type="number"
-                  placeholder="Old Price"
-                  value={regularPrice}
-                  onChange={(e) => setRegularPrice(e.target.value)}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter product name"
                 />
               </div>
+
               <div className="flex flex-col">
-                <Label>New Price</Label>
+                <Label>SKU</Label>
+                <Input
+                  value={sku}
+                  onChange={(e) => setSku(e.target.value)}
+                  placeholder="Enter SKU"
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <Label>Category</Label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="border border-gray-300 rounded-md p-2"
+                >
+                  {categories.map((cat) => (
+                    <option key={cat.slug} value={cat.slug}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col">
+                <Label>Sizes</Label>
+                <Input
+                  value={sizes}
+                  onChange={(e) => setSizes(e.target.value)}
+                  placeholder="e.g., 4 Haat, 5 Haat"
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <Label>Brand</Label>
+                <Input
+                  value={brand}
+                  onChange={(e) => setBrand(e.target.value)}
+                  placeholder="Brand name"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col">
+                  <Label>Old Price</Label>
+                  <Input
+                    type="number"
+                    value={regularPrice}
+                    onChange={(e) => setRegularPrice(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <Label>New Price</Label>
+                  <Input
+                    type="number"
+                    value={salePrice}
+                    onChange={(e) => setSalePrice(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col">
+                <Label>Short Description</Label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Short description"
+                  className="border border-gray-300 rounded-md p-2 w-full min-h-[100px]"
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <Label>Discount %</Label>
                 <Input
                   type="number"
-                  placeholder="New Price"
-                  value={salePrice}
-                  onChange={(e) => setSalePrice(e.target.value)}
+                  value={discount}
+                  onChange={(e) => setDiscount(e.target.value)}
                 />
               </div>
             </div>
 
-            {/* Description */}
-            <div className="flex flex-col">
-              <Label>Short Description</Label>
-              <textarea
-                className="border border-gray-300 rounded-md p-2 w-full min-h-[100px]"
-                placeholder="Short description about the product"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
-
-            {/* Discount */}
-            <div className="flex flex-col">
-              <Label>Discount %</Label>
-              <Input
-                type="number"
-                placeholder="Discount %"
-                value={discount}
-                onChange={(e) => setDiscount(e.target.value)}
-              />
-            </div>
-
-            {/* Submit */}
             <Button
               type="submit"
+              disabled={submitting}
               className={`w-full mt-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-md transition-all duration-200 ${
                 submitting ? "opacity-50 cursor-not-allowed" : ""
               }`}
-              disabled={submitting}
             >
               {submitting ? "Adding..." : "Add Product"}
             </Button>

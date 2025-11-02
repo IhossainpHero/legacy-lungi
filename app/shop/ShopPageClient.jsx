@@ -30,21 +30,26 @@ export default function ShopPageClient({ products }) {
   const [activePriceRange, setActivePriceRange] = useState(PRICE_RANGES[0]);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // ✅ Filter Logic
   const filteredProducts = products.filter((product) => {
     const categoryMatch =
       activeCategory.value === "all" ||
       product.category?.toLowerCase() === activeCategory.value.toLowerCase();
+
     const priceMatch =
       product.sale_price >= activePriceRange.min &&
       product.sale_price <= activePriceRange.max;
+
     const searchMatch = product.name
-      .toLowerCase()
+      ?.toLowerCase()
       .includes(searchQuery.toLowerCase());
+
     return categoryMatch && priceMatch && searchMatch;
   });
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
+      {/* 🔍 Search Header */}
       <header className="sticky mt-12 top-0 z-10 bg-white shadow-md p-3">
         <div className="relative">
           <input
@@ -57,6 +62,7 @@ export default function ShopPageClient({ products }) {
         </div>
       </header>
 
+      {/* 🛍️ Main Content */}
       <main className="flex-grow p-4 pb-4">
         <div className="text-sm text-gray-500 mb-3">
           <Link href="/" className="hover:text-blue-600">
@@ -68,6 +74,7 @@ export default function ShopPageClient({ products }) {
           </span>
         </div>
 
+        {/* 🔽 Filters */}
         <div className="bg-white p-4 rounded-xl shadow-lg border border-gray-200 mb-6 grid grid-cols-2 gap-4">
           <DropdownFilter
             title="ক্যাটাগরি"
@@ -83,6 +90,7 @@ export default function ShopPageClient({ products }) {
           />
         </div>
 
+        {/* 🧩 Product Grid */}
         {filteredProducts.length === 0 ? (
           <p className="text-center text-gray-500 py-10">
             কোন প্রোডাক্ট পাওয়া যায়নি 😞
@@ -90,7 +98,22 @@ export default function ShopPageClient({ products }) {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filteredProducts.map((product) => (
-              <ProductCard key={product._id} {...product} />
+              <ProductCard
+                key={product._id}
+                _id={product._id}
+                name={product.name || "No Name"}
+                sale_price={product.sale_price || 0}
+                regular_price={product.regular_price || 0}
+                // ✅ শুধু main_image ব্যবহার করা হবে
+                image={
+                  product.main_image || product.image || "/placeholder.png"
+                }
+                slug={product.slug || product.sku || ""}
+                discount={product.discount || 0}
+                description={product.description || ""}
+                sizes={product.sizes || []}
+                sku={product.sku || ""}
+              />
             ))}
           </div>
         )}

@@ -38,15 +38,18 @@ export default function CheckoutPage() {
 
   const [loading, setLoading] = useState(false);
 
+  // 🧠 Form field change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // ✅ Order Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
+    // 🔹 Order data: only send main_image
     const orderData = {
       name: form.name,
       phone: form.phone,
@@ -55,7 +58,8 @@ export default function CheckoutPage() {
         name: p.name,
         price: p.sale_price,
         quantity: p.quantity,
-        image: p.image || null,
+        // ✅ শুধু main_image MongoDB তে যাবে
+        image: p.main_image || p.image || "/placeholder.png",
       })),
       subtotal,
       shippingCharge,
@@ -94,6 +98,7 @@ export default function CheckoutPage() {
     }
   };
 
+  // 🛒 Empty Cart
   if (cartItems.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600">
@@ -207,7 +212,10 @@ export default function CheckoutPage() {
               </button>
               <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-white">
                 <Image
-                  src={product.image || "/placeholder.png"}
+                  // ✅ শুধু main_image দেখাবে
+                  src={
+                    product.main_image || product.image || "/placeholder.png"
+                  }
                   alt={product.name}
                   fill
                   className="object-cover"
@@ -260,7 +268,7 @@ export default function CheckoutPage() {
           <div className="flex justify-between">
             <span className="text-gray-900">
               Delivery Charge (
-              {shippingLocation === "inside" ? "ঢাকা" : "ঢাকার বাইরে"})
+              {shippingLocation === "inside" ? "ঢাকা" : "ঢাকার বাইরে"} )
             </span>
             <span className="font-semibold text-gray-900">
               ৳ {shippingCharge.toLocaleString("en-US")}

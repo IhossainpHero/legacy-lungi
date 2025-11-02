@@ -2,15 +2,34 @@
 
 import { useCart } from "@/app/context/CartContext";
 import Image from "next/image";
-import { useRouter } from "next/navigation"; // ✅ ঠিকভাবে Import করা হয়েছে
-import { useState } from "react";
-import { FaMinus, FaPhoneAlt, FaPlus, FaWhatsapp } from "react-icons/fa";
+import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
+import {
+  FaChevronLeft,
+  FaChevronRight,
+  FaMinus,
+  FaPhoneAlt,
+  FaPlus,
+  FaWhatsapp,
+} from "react-icons/fa";
 
 export default function ProductDetails({ product }) {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
   const [added, setAdded] = useState(false);
-  const router = useRouter(); // ✅ এখানে router define করা হয়েছে
+  const router = useRouter();
+
+  // Images state
+  const images = [
+    product.main_image,
+    ...(product.images?.filter((img) => img !== product.main_image) || []),
+  ];
+  const [mainIndex, setMainIndex] = useState(0);
+  const mainImage = images[mainIndex];
+
+  // Swipe refs
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   const handleAddToCart = () => {
     addToCart({
@@ -18,7 +37,7 @@ export default function ProductDetails({ product }) {
       name: product.name,
       sale_price: product.sale_price,
       regular_price: product.regular_price,
-      image: product.image,
+      image: mainImage,
       slug: product.slug,
       description: product.description,
       discount: product.discount,
@@ -30,22 +49,39 @@ export default function ProductDetails({ product }) {
   };
 
   const handleOrderNow = () => {
-    // ✅ কার্টে যোগ করা
     addToCart({
       _id: product._id,
       name: product.name,
       sale_price: product.sale_price,
       regular_price: product.regular_price,
-      image: product.image,
+      image: mainImage,
       slug: product.slug,
       description: product.description,
       discount: product.discount,
       selectedSize: product.sizes?.[0] || undefined,
       quantity,
     });
-
-    // ✅ Checkout পেজে রিডাইরেক্ট করা
     router.push("/checkout");
+  };
+
+  const prevImage = () =>
+    setMainIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  const nextImage = () =>
+    setMainIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+
+  // Swipe Handlers
+  const onTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const onTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const onTouchEnd = () => {
+    const deltaX = touchStartX.current - touchEndX.current;
+    if (deltaX > 50) nextImage(); // left swipe
+    else if (deltaX < -50) prevImage(); // right swipe
   };
 
   return (
@@ -65,19 +101,72 @@ export default function ProductDetails({ product }) {
 
       {/* Product Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        {/* 🔹 Full Responsive Product Image */}
-        <div className="relative w-full h-[450px] sm:h-[550px] md:h-[600px] rounded-2xl overflow-hidden shadow-md">
-          <Image
-            src={product.image || "/placeholder.png"}
-            alt={product.name}
-            fill
-            unoptimized
-            loading="lazy"
-            className="object-cover object-center cursor-pointer transition-transform duration-300 hover:scale-105"
-          />
+        {/* Main Image */}
+        <div className="flex flex-col gap-3 relative">
+          <div
+            className="relative w-full h-[450px] sm:h-[550px] md:h-[600px] rounded-2xl overflow-hidden shadow-md flex items-center justify-center transition-all duration-500"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
+            <Image
+              src={mainImage || "/placeholder.png"}
+              alt={product.name}
+              fill
+              unoptimized
+              loading="lazy"
+              className="object-cover object-center cursor-pointer transition-transform duration-300 hover:scale-105"
+            />
+
+            {/* Left Arrow */}
+            {images.length > 1 && (
+              <button
+                onClick={prevImage}
+                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-gray-200 rounded-full p-2 hover:bg-gray-300 z-10"
+              >
+                <FaChevronLeft className="w-4 h-4 text-gray-800" />
+              </button>
+            )}
+
+            {/* Right Arrow */}
+            {images.length > 1 && (
+              <button
+                onClick={nextImage}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-200 rounded-full p-2 hover:bg-gray-300 z-10"
+              >
+                <FaChevronRight className="w-4 h-4 text-gray-800" />
+              </button>
+            )}
+          </div>
+
+          {/* Thumbnails */}
+          {images.length > 1 && (
+            <div
+              className="flex gap-2 mt-2 overflow-x-auto scrollbar-none"
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              {images.map((img, idx) => (
+                <div
+                  key={idx}
+                  className={`relative w-20 h-20 rounded-md overflow-hidden border-2 cursor-pointer ${
+                    idx === mainIndex ? "border-blue-500" : "border-gray-200"
+                  }`}
+                  onClick={() => setMainIndex(idx)}
+                >
+                  <Image
+                    src={img}
+                    alt={`Thumbnail ${idx}`}
+                    fill
+                    className="object-cover"
+                    draggable={false}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Product Info + Contact for large screens */}
+        {/* Product Info + Contact */}
         <div className="flex flex-col justify-between gap-6">
           <div>
             <h2 className="text-2xl lg:text-3xl text-gray-700 font-bold">
@@ -123,20 +212,14 @@ export default function ProductDetails({ product }) {
               <button
                 onClick={handleAddToCart}
                 disabled={added}
-                className={`flex-1 bg-blue-700 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition shadow-md text-xs whitespace-nowrap
-                  ${
-                    added
-                      ? "bg-gray-400 cursor-not-allowed text-white"
-                      : "bg-[#063238] text-white hover:bg-blue-600"
-                  }`}
+                className={`flex-1 bg-blue-700 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition shadow-md text-xs whitespace-nowrap ${
+                  added
+                    ? "bg-gray-400 cursor-not-allowed text-white"
+                    : "bg-[#063238] text-white hover:bg-blue-600"
+                }`}
               >
                 {added ? "Added!" : "কার্টে যোগ করুন"}
               </button>
-              {added && (
-                <div className="absolute top-0 right-0 mt-1 mr-1 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-lg shadow-md">
-                  ✅ প্রোডাক্টটি কার্টে যোগ হয়েছে!
-                </div>
-              )}
 
               <button
                 onClick={handleOrderNow}
@@ -147,45 +230,36 @@ export default function ProductDetails({ product }) {
             </div>
           </div>
 
-          {/* ✅ Contact Section for large screens (Right side beside image) */}
           <div className="hidden lg:block">
             <ContactSection />
           </div>
         </div>
       </div>
 
-      {/* ✅ Contact Section for small & medium screens (below image) */}
       <div className="block lg:hidden mt-10">
         <ContactSection />
       </div>
 
-      {/* Specification Table */}
       <SpecificationTable />
-
-      {/* Product Description */}
       <ProductDescription product={product} />
     </div>
   );
 }
 
-// -------------------------------------------------------------
-// Contact Section
+// ------------------------- Contact Section -------------------------
 function ContactSection() {
   return (
     <div className="text-center mt-12 space-y-4">
       <p className="text-gray-800 font-semibold">
         আপনার যেকোন প্রয়োজনে আমাদের সাথে যোগাযোগ করুন
       </p>
-
       <a
         href="tel:+8801916660952"
         className="flex justify-center items-center gap-2 bg-[#0C2340] text-white py-2 rounded-lg font-semibold hover:bg-[#163d66] transition w-full sm:w-2/3 mx-auto"
       >
         <FaPhoneAlt /> +880 1916660952
       </a>
-
       <p className="text-gray-700">অর্ডার বা তথ্যের জন্য WhatsApp করুন</p>
-
       <a
         href="https://wa.me/8801916660952"
         target="_blank"
@@ -198,8 +272,7 @@ function ContactSection() {
   );
 }
 
-// -------------------------------------------------------------
-// Specification Table
+// ------------------------- Specification Table -------------------------
 const specifications = [
   { label: "Brand", value: "Legacy Lungi" },
   { label: "Fabric Type", value: "Cotton" },
@@ -235,8 +308,7 @@ function SpecificationTable() {
   );
 }
 
-// -------------------------------------------------------------
-// Product Description
+// ------------------------- Product Description -------------------------
 function ProductDescription({ product }) {
   return (
     <div className="text-gray-500 mt-10 leading-relaxed space-y-3 border-t border-gray-200 pt-6">

@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // ✅ images কনফিগারেশন যোগ করুন
+  reactStrictMode: true,
   images: {
-    // remotePatterns হলো Next.js 13.4+ এর জন্য সঠিক সিনট্যাক্স
     remotePatterns: [
       {
         protocol: "https",
@@ -10,9 +9,14 @@ const nextConfig = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com", // ✅ Cloudinary allowed
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 };
 
-// 💡 যেহেতু আপনার সিস্টেমে `export default` কাজ করছে, আমরা এটি ব্যবহার করছি
 export default nextConfig;

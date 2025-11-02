@@ -5,7 +5,7 @@ import connectDB from "@/lib/mongodb";
 import Product from "@/models/Product";
 import { NextResponse } from "next/server";
 
-// ✅ Helper: Name থেকে slug বানানো
+// Helper: name → slug বানানো
 function generateSlug(name) {
   return name
     .toLowerCase()
@@ -14,7 +14,7 @@ function generateSlug(name) {
     .replace(/\s+/g, "-");
 }
 
-// ✅ GET — সব প্রোডাক্ট দেখাবে
+// GET — সব প্রোডাক্ট দেখাবে
 export async function GET() {
   try {
     await connectDB();
@@ -29,7 +29,7 @@ export async function GET() {
   }
 }
 
-// ✅ POST — নতুন প্রোডাক্ট যোগ করা হবে
+// POST — নতুন প্রোডাক্ট যোগ করা হবে
 export async function POST(req) {
   try {
     await connectDB();
@@ -43,19 +43,23 @@ export async function POST(req) {
       sale_price,
       description,
       discount,
-      image,
+      images, // এখন Cloudinary URLs array
       sizes,
     } = data;
 
-    if (!name || !image) {
+    if (!name || !images || !Array.isArray(images) || images.length === 0) {
       return NextResponse.json(
-        { success: false, message: "Name এবং Image দুটোই দিতে হবে" },
+        {
+          success: false,
+          message: "Product name এবং অন্তত ১টি image দিতে হবে",
+        },
         { status: 400 }
       );
     }
 
     const slug = generateSlug(name);
 
+    // নতুন প্রোডাক্ট তৈরি
     const product = await Product.create({
       name,
       slug,
@@ -66,18 +70,19 @@ export async function POST(req) {
       sale_price: Number(sale_price) || 0,
       description,
       discount: Number(discount) || 0,
-      image,
+      main_image: images[0], // first image main
+      images, // সব Cloudinary URLs array
       sizes,
     });
 
     return NextResponse.json(
-      { success: true, message: "Product added successfully", product },
+      { success: true, message: "✅ Product added successfully!", product },
       { status: 201 }
     );
   } catch (err) {
     console.error("POST Error:", err);
     return NextResponse.json(
-      { success: false, message: err.message || "Failed to add product" },
+      { success: false, message: err.message || "❌ Failed to add product" },
       { status: 500 }
     );
   }

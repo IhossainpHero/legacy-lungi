@@ -2,21 +2,21 @@ import mongoose, { Schema } from "mongoose";
 
 const productSchema = new Schema({
   name: { type: String, required: true },
-  // ✅ এই লাইনটি যোগ করুন
   slug: {
     type: String,
     required: true,
     unique: true,
-    index: true, // ✅ ইন্ডেক্স যোগ করা হলো
+    index: true,
   },
-  category: String,
   sku: { type: String, required: true, unique: true },
+  category: String,
   brand: String,
-  regular_price: Number, // oldPrice
-  sale_price: Number, // newPrice
+  regular_price: Number, // old price
+  sale_price: Number, // new price
   description: String,
   discount: Number,
-  image: { type: String, required: true },
+  main_image: { type: String, required: true }, // main image
+  images: [String], // array for thumbnails or additional images
   sizes: [String],
   createdAt: { type: Date, default: Date.now },
 });
