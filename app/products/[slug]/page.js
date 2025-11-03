@@ -15,7 +15,7 @@ export async function generateStaticParams() {
 
 // 🔹 Product Page
 export default async function ProductPage({ params }) {
-  const { slug } = params; // params সরাসরি destructure
+  const { slug } = await params; // params সরাসরি destructure
 
   await connectDB();
 
