@@ -22,7 +22,8 @@ const API_BASE_URL =
 
 // ✅ ডেটা ফেচিং ফাংশন
 async function fetchCategoryProducts(slug) {
-  const url = `${API_BASE_URL}/api/products/category/${slug}`;
+  const cleanSlug = slug.trim().toLowerCase();
+  const url = `${API_BASE_URL}/api/products/category/${cleanSlug}`;
 
   try {
     const res = await fetch(url, {

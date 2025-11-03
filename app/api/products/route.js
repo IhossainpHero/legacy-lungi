@@ -43,9 +43,12 @@ export async function POST(req) {
       sale_price,
       description,
       discount,
-      images, // এখন Cloudinary URLs array
+      images, // Cloudinary URLs array
       sizes,
+      quantity, // ✅ এখানে include করো
     } = data;
+
+    console.log("Incoming product data:", data); // debug: check quantity
 
     if (!name || !images || !Array.isArray(images) || images.length === 0) {
       return NextResponse.json(
@@ -59,7 +62,6 @@ export async function POST(req) {
 
     const slug = generateSlug(name);
 
-    // নতুন প্রোডাক্ট তৈরি
     const product = await Product.create({
       name,
       slug,
@@ -70,8 +72,9 @@ export async function POST(req) {
       sale_price: Number(sale_price) || 0,
       description,
       discount: Number(discount) || 0,
-      main_image: images[0], // first image main
-      images, // সব Cloudinary URLs array
+      quantity: Number(quantity) || 0, // ✅ এখানে save হবে
+      main_image: images[0],
+      images,
       sizes,
     });
 

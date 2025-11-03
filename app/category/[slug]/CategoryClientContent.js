@@ -12,6 +12,7 @@ const categories = [
   { name: "স্ট্রাইপ এবং চেক লুঙ্গি", slug: "stripe-check" },
   { name: "ফ্যান্সি লুঙ্গি", slug: "fancy-lungi" },
   { name: "টু পার্ট লুঙ্গি", slug: "two-part" },
+  { name: "জ্যাকার্ড লুঙ্গি", slug: "jacquard-lungi" },
   { name: "এক কালার লুঙ্গি", slug: "one-color" },
   { name: "সাদা এবং অন্যান্য", slug: "white-and-others" },
 ];

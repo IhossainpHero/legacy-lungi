@@ -1,5 +1,6 @@
 "use client";
 import {
+  ImageIcon,
   LayoutDashboard,
   LogOut,
   Package,
@@ -129,6 +130,17 @@ export default function AdminLayout({ children }) {
           >
             <ShoppingBag size={20} /> My Orders
           </a>
+          {/* Category Image - <a> ট্যাগ ব্যবহার করা হলো */}
+          <a
+            href="/admin/categoryPage"
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              pathname === "/admin/categoryPage"
+                ? "bg-[#0d5967] font-semibold"
+                : "hover:bg-gray-700"
+            }`}
+          >
+            <ImageIcon size={20} /> Category Image
+          </a>
 
           {/* Profile - <a> ট্যাগ ব্যবহার করা হলো */}
           <a
@@ -179,6 +191,12 @@ export default function AdminLayout({ children }) {
           <NavItem href="/admin" label="Home" Icon={LayoutDashboard} />
           <NavItem href="/admin/products" label="Products" Icon={Package} />
           <NavItem href="/admin/products/add" label="Add" Icon={PlusSquare} />
+          <NavItem
+            href="/admin/categoryPage"
+            label="Category"
+            Icon={ImageIcon}
+          />
+
           <NavItem href="/admin/orders" label="Orders" Icon={ShoppingBag} />
         </div>
       </div>

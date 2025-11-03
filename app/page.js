@@ -1,4 +1,4 @@
-import CategorySlider from "./components/Product/CategorySlider";
+import CategorySliderServer from "./components/Product/CategorySliderServer";
 import ProductGrid from "./components/Product/ProductGrid";
 import Hero from "./components/UI/Hero";
 
@@ -10,7 +10,7 @@ export default function Home() {
 
       {/* 🔹 Category Slider */}
       <section className="w-full px-4 py-6">
-        <CategorySlider />
+        <CategorySliderServer />
       </section>
 
       {/* 🔹 Product Grid */}

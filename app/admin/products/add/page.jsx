@@ -18,6 +18,7 @@ const categories = [
   { name: "স্ট্রাইপ এবং চেক লুঙ্গি", slug: "stripe-check" },
   { name: "ফ্যান্সি লুঙ্গি", slug: "fancy-lungi" },
   { name: "টু পার্ট লুঙ্গি", slug: "two-part" },
+  { name: "জ্যাকার্ড লুঙ্গি", slug: "jacquard-lungi" },
   { name: "এক কালার লুঙ্গি", slug: "one-color" },
   { name: "সাদা এবং অন্যান্য", slug: "white-and-others" },
 ];
@@ -32,6 +33,7 @@ export default function AddProductPage() {
   const [salePrice, setSalePrice] = useState("");
   const [description, setDescription] = useState("");
   const [discount, setDiscount] = useState("");
+  const [quantity, setQuantity] = useState(""); // ✅ নতুন যোগ করা state
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -111,6 +113,7 @@ export default function AddProductPage() {
       main_image: images[mainImageIndex],
       images,
       sizes: sizeArray,
+      quantity: Number(quantity) || 0, // ✅ নতুন ফিল্ড
     };
 
     try {
@@ -145,6 +148,7 @@ export default function AddProductPage() {
     setSalePrice("");
     setDescription("");
     setDiscount("");
+    setQuantity(""); // ✅ রিসেট
     setImages([]);
     setPreviews([]);
     setMainImageIndex(0);
@@ -282,13 +286,25 @@ export default function AddProductPage() {
                 />
               </div>
 
-              <div className="flex flex-col">
-                <Label>Discount %</Label>
-                <Input
-                  type="number"
-                  value={discount}
-                  onChange={(e) => setDiscount(e.target.value)}
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col">
+                  <Label>Discount %</Label>
+                  <Input
+                    type="number"
+                    value={discount}
+                    onChange={(e) => setDiscount(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex flex-col">
+                  <Label>Quantity</Label>
+                  <Input
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    placeholder="Enter product quantity"
+                  />
+                </div>
               </div>
             </div>
 

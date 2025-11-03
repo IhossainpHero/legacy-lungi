@@ -11,10 +11,11 @@ const productSchema = new Schema({
   sku: { type: String, required: true, unique: true },
   category: String,
   brand: String,
-  regular_price: Number, // old price
-  sale_price: Number, // new price
+  regular_price: { type: Number, default: 0 }, // old price
+  sale_price: { type: Number, default: 0 }, // new price
   description: String,
-  discount: Number,
+  discount: { type: Number, default: 0 },
+  quantity: { type: Number, default: 0 }, // ✅ নতুন ফিল্ড
   main_image: { type: String, required: true }, // main image
   images: [String], // array for thumbnails or additional images
   sizes: [String],

@@ -19,7 +19,6 @@ export default function CheckoutPage() {
 
   const router = useRouter();
 
-  // 🔹 Shipping charge based on selected location
   const shippingCharge =
     shippingLocation === "inside"
       ? 80
@@ -27,7 +26,6 @@ export default function CheckoutPage() {
       ? 120
       : 0;
 
-  // 🔹 Total price
   const total = subtotal + shippingCharge;
 
   const [form, setForm] = useState({
@@ -38,27 +36,25 @@ export default function CheckoutPage() {
 
   const [loading, setLoading] = useState(false);
 
-  // 🧠 Form field change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Order Submit
+  // ✅ Updated handleSubmit: stock quantity will decrease safely
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    // 🔹 Order data: only send main_image
     const orderData = {
       name: form.name,
       phone: form.phone,
       address: form.address,
       items: cartItems.map((p) => ({
+        _id: p._id,
         name: p.name,
         price: p.sale_price,
         quantity: p.quantity,
-        // ✅ শুধু main_image MongoDB তে যাবে
         image: p.main_image || p.image || "/placeholder.png",
       })),
       subtotal,
@@ -68,28 +64,50 @@ export default function CheckoutPage() {
     };
 
     try {
+      // 1️⃣ Create order
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderData),
       });
-
       const result = await res.json();
 
-      if (result.success) {
-        clearCart();
-        localStorage.setItem(
-          "latestOrder",
-          JSON.stringify({
-            ...orderData,
-            _id: result.orderId,
-            createdAt: new Date().toISOString(),
-          })
-        );
-        router.push("/checkout/order-recieved");
-      } else {
+      if (!result.success) {
         alert("অর্ডার সাবমিট করতে সমস্যা হয়েছে।");
+        setLoading(false);
+        return;
       }
+
+      // 2️⃣ Prepare total quantity per product
+      const productQuantities = {};
+      cartItems.forEach((item) => {
+        if (!productQuantities[item._id]) productQuantities[item._id] = 0;
+        productQuantities[item._id] += item.quantity;
+      });
+
+      // 3️⃣ Update product stock safely
+      await Promise.all(
+        Object.entries(productQuantities).map(([id, qty]) =>
+          fetch(`/api/products/${id}/decrease-stock`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ quantity: qty }),
+          })
+        )
+      );
+
+      // 4️⃣ Clear cart & save latest order
+      clearCart();
+      localStorage.setItem(
+        "latestOrder",
+        JSON.stringify({
+          ...orderData,
+          _id: result.orderId,
+          createdAt: new Date().toISOString(),
+        })
+      );
+
+      router.push("/checkout/order-recieved");
     } catch (err) {
       console.error(err);
       alert("Server error, আবার চেষ্টা করুন।");
@@ -98,7 +116,6 @@ export default function CheckoutPage() {
     }
   };
 
-  // 🛒 Empty Cart
   if (cartItems.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600">
@@ -212,7 +229,6 @@ export default function CheckoutPage() {
               </button>
               <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-white">
                 <Image
-                  // ✅ শুধু main_image দেখাবে
                   src={
                     product.main_image || product.image || "/placeholder.png"
                   }
@@ -264,17 +280,15 @@ export default function CheckoutPage() {
               ৳ {subtotal.toLocaleString("en-US")}
             </span>
           </div>
-
           <div className="flex justify-between">
             <span className="text-gray-900">
               Delivery Charge (
-              {shippingLocation === "inside" ? "ঢাকা" : "ঢাকার বাইরে"} )
+              {shippingLocation === "inside" ? "ঢাকা" : "ঢাকার বাইরে"})
             </span>
             <span className="font-semibold text-gray-900">
               ৳ {shippingCharge.toLocaleString("en-US")}
             </span>
           </div>
-
           <div className="flex justify-between border-t pt-2 font-semibold">
             <span className="text-gray-900">Total</span>
             <span className="text-gray-900">
