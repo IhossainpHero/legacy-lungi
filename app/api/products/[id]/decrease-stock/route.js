@@ -1,3 +1,7 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+
 import connectDB from "@/lib/mongodb";
 import Product from "@/models/Product";
 import { NextResponse } from "next/server";
@@ -26,42 +30,43 @@ export async function GET(req, { params }) {
   }
 }
 
-// 🟡 POST (optional): stock update logic (তুমি আগেরটা রাখতে পারো)
+// 🟡 POST: decrease product quantity
 export async function POST(req, { params }) {
-  await connectDB();
-
-  const { id } = params;
-  const { quantity } = await req.json();
-
-  if (!quantity || quantity <= 0) {
-    return new Response(
-      JSON.stringify({ success: false, message: "Invalid quantity" }),
-      { status: 400 }
-    );
-  }
-
   try {
+    await connectDB();
+    const { id } = params;
+    const { quantity } = await req.json();
+
+    if (!quantity || quantity <= 0) {
+      return NextResponse.json(
+        { success: false, message: "Invalid quantity" },
+        { status: 400 }
+      );
+    }
+    console.log("🟡 Trying to decrease quantity for:", id, "by:", quantity);
+
     const updatedProduct = await Product.findOneAndUpdate(
-      { _id: id, stock: { $gte: quantity } },
-      { $inc: { stock: -quantity } },
+      { _id: id, quantity: { $gte: quantity } }, // ✅ match with schema
+      { $inc: { quantity: -quantity } }, // ✅ match with schema
       { new: true }
     );
+    console.log("✅ Updated Product Quantity:", updatedProduct?.quantity);
 
     if (!updatedProduct) {
-      return new Response(
-        JSON.stringify({ success: false, message: "Product not found" }),
+      return NextResponse.json(
+        { success: false, message: "Not enough stock or product not found" },
         { status: 404 }
       );
     }
 
-    return new Response(
-      JSON.stringify({ success: true, stock: updatedProduct.stock }),
-      { status: 200 }
-    );
+    return NextResponse.json({
+      success: true,
+      newQuantity: updatedProduct.quantity,
+    });
   } catch (err) {
-    console.error(err);
-    return new Response(
-      JSON.stringify({ success: false, message: "Server error" }),
+    console.error("Decrease stock error:", err);
+    return NextResponse.json(
+      { success: false, message: "Server error" },
       { status: 500 }
     );
   }

@@ -110,8 +110,7 @@ export default function ProductDetails({ product }) {
               src={mainImage || "/placeholder.png"}
               alt={product.name}
               fill
-              unoptimized
-              loading="lazy"
+              priority
               className="object-cover object-center transition-transform duration-300 hover:scale-105"
             />
 
@@ -192,9 +191,9 @@ export default function ProductDetails({ product }) {
                   সাইজ: {product.sizes.join(", ")}
                 </p>
                 {/* Quantity in stock */}
-                <p className="text-gray-900 text-xs mt-1">
+                {/* <p className="text-gray-900 text-xs mt-1">
                   {product.quantity} in stock
-                </p>
+                </p> */}
               </div>
             )}
 

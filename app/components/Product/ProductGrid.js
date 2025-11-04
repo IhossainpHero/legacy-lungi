@@ -1,30 +1,40 @@
-import ProductCard from "@/app/components/Product/ProductCard";
+"use client";
 
-export default async function ProductGrid() {
+import ProductCard from "@/app/components/Product/ProductCard";
+import useSWR from "swr";
+
+const fetcher = (url) => fetch(url).then((res) => res.json());
+
+export default function ProductGrid() {
   const API_BASE_URL =
     process.env.NODE_ENV === "development"
       ? "http://localhost:3000"
       : process.env.NEXT_PUBLIC_API_URL;
 
-  let products = [];
-
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/products`, {
-      next: { revalidate: 60 },
-    });
-
-    if (!res.ok) {
-      console.error("Failed to fetch products:", res.status);
-      products = [];
-    } else {
-      products = await res.json();
+  // SWR দিয়ে fetch + revalidate every 30s
+  const { data: products, error } = useSWR(
+    `${API_BASE_URL}/api/products`,
+    fetcher,
+    {
+      refreshInterval: 30000, // 30 সেকেন্ড
     }
-  } catch (err) {
-    console.error("Error fetching products:", err);
-    products = [];
+  );
+
+  if (error) {
+    return (
+      <p className="text-center text-red-500 py-10">
+        Failed to load products 😞
+      </p>
+    );
   }
 
-  if (!products || products.length === 0) {
+  if (!products) {
+    return (
+      <p className="text-center text-gray-500 py-10">Loading products...</p>
+    );
+  }
+
+  if (products.length === 0) {
     return (
       <p className="text-center text-gray-500 py-10">No products found 😞</p>
     );
@@ -39,12 +49,13 @@ export default async function ProductGrid() {
           name={p.name}
           sale_price={p.sale_price}
           regular_price={p.regular_price}
-          image={p.main_image || p.images?.[0]} // <-- main_image ব্যবহার করুন
+          image={p.main_image || p.images?.[0]}
           slug={p.slug || p.sku}
           discount={p.discount}
           description={p.description}
           sizes={p.sizes || []}
           sku={p.sku}
+          quantity={p.quantity} // যদি stock দেখাতে চাও
         />
       ))}
     </div>

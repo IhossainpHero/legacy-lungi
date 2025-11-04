@@ -9,6 +9,7 @@ import { FaTimes } from "react-icons/fa";
 export default function CheckoutPage() {
   const {
     cartItems,
+    setCartItems,
     updateQuantity,
     removeFromCart,
     subtotal,
@@ -18,6 +19,7 @@ export default function CheckoutPage() {
   } = useCart();
 
   const router = useRouter();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
   const shippingCharge =
     shippingLocation === "inside"
@@ -41,11 +43,17 @@ export default function CheckoutPage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Updated handleSubmit: stock quantity will decrease safely
+  // ✅ Order Submit + Optimistic Stock Update
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!form.name || !form.phone || !form.address) {
+      alert("অনুগ্রহ করে সব ফিল্ড পূরণ করুন।");
+      return;
+    }
+
     setLoading(true);
 
+    // 1️⃣ Prepare order data
     const orderData = {
       name: form.name,
       phone: form.phone,
@@ -64,55 +72,64 @@ export default function CheckoutPage() {
       status: "pending",
     };
 
-    console.log("orderData before submit:", orderData);
+    // 2️⃣ Optimistically decrease stock in UI
+    const updatedCart = cartItems.map((p) => ({
+      ...p,
+      quantity: p.quantity, // keep same in UI cart for order
+    }));
+    setCartItems((prev) =>
+      prev.map((item) => {
+        const cartItem = cartItems.find((c) => c._id === item._id);
+        if (!cartItem) return item;
+        return { ...item, quantity: item.quantity - cartItem.quantity }; // UI update
+      })
+    );
+
     try {
-      // 1️⃣ Create order
-      const res = await fetch("/api/orders", {
+      // 3️⃣ Create order
+      const orderRes = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderData),
+        cache: "no-store",
       });
-      const result = await res.json();
+      const orderResult = await orderRes.json();
 
-      if (!result.success) {
-        alert("অর্ডার সাবমিট করতে সমস্যা হয়েছে।");
+      if (!orderResult.success) {
+        alert("অর্ডার সাবমিট করতে সমস্যা হয়েছে!");
         setLoading(false);
         return;
       }
 
-      // 2️⃣ Prepare total quantity per product
-      const productQuantities = {};
-      cartItems.forEach((item) => {
-        if (!productQuantities[item._id]) productQuantities[item._id] = 0;
-        productQuantities[item._id] += item.quantity;
-      });
+      // 4️⃣ Update stock in backend (sequentially)
+      for (const item of cartItems) {
+        const stockRes = await fetch(`/api/products/${item._id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ quantity: item.quantity }),
+          cache: "no-store",
+        });
+        if (!stockRes.ok) {
+          console.warn(`⚠️ Stock update failed for product ${item._id}`);
+        }
+      }
 
-      // 3️⃣ Update product stock safely
-      await Promise.all(
-        Object.entries(productQuantities).map(([id, qty]) =>
-          fetch(`/api/products/${id}/decrease-stock`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ quantity: qty }),
-          })
-        )
-      );
-
-      // 4️⃣ Clear cart & save latest order
+      // 5️⃣ Clear cart & save order info
       clearCart();
       localStorage.setItem(
         "latestOrder",
         JSON.stringify({
           ...orderData,
-          _id: result.orderId,
+          _id: orderResult.orderId,
           createdAt: new Date().toISOString(),
         })
       );
 
+      // 6️⃣ Redirect
       router.push("/checkout/order-recieved");
     } catch (err) {
-      console.error(err);
-      alert("Server error, আবার চেষ্টা করুন।");
+      console.error("❌ Order Error:", err);
+      alert("Server error! আবার চেষ্টা করুন।");
     } finally {
       setLoading(false);
     }
@@ -285,7 +302,7 @@ export default function CheckoutPage() {
           <div className="flex justify-between">
             <span className="text-gray-900">
               Delivery Charge (
-              {shippingLocation === "inside" ? "ঢাকা" : "ঢাকার বাইরে"})
+              {shippingLocation === "inside" ? "ঢাকা" : "ঢাকার বাইরে"} )
             </span>
             <span className="font-semibold text-gray-900">
               ৳ {shippingCharge.toLocaleString("en-US")}
