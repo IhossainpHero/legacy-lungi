@@ -83,3 +83,26 @@ export const products = [
     sizes: [" ৫.৫ হাত, লম্বা ৪৮-৫৩ ইঞ্চি, প্রস্থ ৯৫-১০০ ইঞ্চি "], // Sizes added
   },
 ];
+
+
+const categories = [
+  { name: "ডিপ কালেকশন", slug: "deep-collection", image: "/images/DL-1.jpg" },
+  {
+    name: "স্ট্রাইপ এবং চেক লুঙ্গি",
+    slug: "stripe-check",
+    image: "/images/DL-2.jpg",
+  },
+  { name: "ফ্যান্সি লুঙ্গি", slug: "fancy-lungi", image: "/images/DL-3.jpg" },
+  { name: "টু পার্ট লুঙ্গি", slug: "two-part", image: "/images/DL-7.jpg" },
+  {
+    name: "জ্যাকার্ড লুঙ্গি",
+    slug: "jacquard-lungi ",
+    image: "/images/DL-7.jpg",
+  },
+  { name: "এক কালার লুঙ্গি", slug: "one-color", image: "/images/DL-1.jpg" },
+  {
+    name: "সাদা এবং অন্যান্য",
+    slug: "white-and-others",
+    image: "/images/DL-2.jpg",
+  },
+];

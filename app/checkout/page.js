@@ -61,8 +61,10 @@ export default function CheckoutPage() {
       shippingCharge,
       total,
       shippingLocation,
+      status: "pending",
     };
 
+    console.log("orderData before submit:", orderData);
     try {
       // 1️⃣ Create order
       const res = await fetch("/api/orders", {

@@ -4,7 +4,7 @@ import Hero from "./components/UI/Hero";
 
 export default function Home() {
   return (
-    <main className="w-full overflow-x-hidden">
+    <main className="w-full  overflow-x-hidden">
       {/* 🏞️ Hero Banner Section */}
       <Hero />
 

@@ -12,3 +12,4 @@ export default async function CategorySliderServer() {
 
   return <CategorySliderClient categories={categories} />;
 }
+  

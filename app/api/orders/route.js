@@ -10,11 +10,15 @@ export async function POST(request) {
     const data = await request.json();
     const { items } = data;
 
-    // 1️⃣ Save the order
-    const newOrder = new Order(data);
+    // 🟢 1️⃣ Add default status before saving
+    const newOrder = new Order({
+      ...data,
+      status: "pending", // ✅ auto add
+    });
+
     await newOrder.save();
 
-    // 2️⃣ Update product quantities
+    // 🟢 2️⃣ Update product quantities (stock decrease)
     for (let item of items) {
       await Product.updateOne(
         { _id: item._id }, // find product by ID
@@ -22,6 +26,7 @@ export async function POST(request) {
       );
     }
 
+    // 🟢 3️⃣ Send success response
     return NextResponse.json({ success: true, orderId: newOrder._id });
   } catch (err) {
     console.error("Order POST Error:", err);

@@ -39,13 +39,13 @@ export default function MobileHeader() {
       </div>
 
       {/* Search Bar */}
-      <div className="px-4 pb-3">
+      {/* <div className="px-4 pb-3">
         <input
           type="text"
           placeholder="Search products..."
           className="w-full border border-white/30 bg-white/10 text-white placeholder-white/70 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white caret-white"
         />
-      </div>
+      </div> */}
 
       {/* Slide-in Sidebar Menu */}
       <div
