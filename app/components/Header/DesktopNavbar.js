@@ -1,6 +1,6 @@
 "use client";
 import { useCart } from "@/app/context/CartContext";
-import { Phone, ShoppingCart, User } from "lucide-react";
+import { Phone, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -19,8 +19,11 @@ export default function DesktopNavbar() {
             height={50}
             className="rounded-full"
           /> */}
+
         <h1 className="text-2xl lg:text-3xl font-bold uppercase tracking-wide">
-          Legacy <span className="text-sky-400">Lungi</span>
+          <Link href="/" className="hover:text-sky-400 transition">
+            Legacy <span className="text-sky-400">Lungi</span>
+          </Link>
         </h1>
       </div>
 
@@ -68,18 +71,18 @@ export default function DesktopNavbar() {
           <Phone size={20} className="text-sky-400" />
           <div className="text-sm leading-tight">
             <p className="text-xs text-gray-300">Call us now</p>
-            <p className="font-semibold text-white">01742801735</p>
+            <p className="font-semibold text-white">01534648375</p>
           </div>
         </a>
 
         {/* My Account */}
-        <Link
+        {/* <Link
           href="/account"
           className="flex items-center space-x-1 hover:text-sky-400 text-sm"
         >
           <User size={20} />
           <span>My Account</span>
-        </Link>
+        </Link> */}
 
         {/* Cart */}
         <Link

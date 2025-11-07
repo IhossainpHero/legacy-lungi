@@ -23,9 +23,9 @@ export async function POST(req) {
           folder: "products",
           format: "webp",
           transformation: [
-            { width: 800, height: 800, crop: "limit" }, // Max size 800x800
-            { quality: "auto" }, // Auto quality
-            { fetch_format: "auto" }, // Auto format WebP/compatible
+            { width: 800, height: 800, crop: "limit" },
+            { quality: "auto" },
+            { fetch_format: "auto" },
           ],
         },
         (err, result) => {

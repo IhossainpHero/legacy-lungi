@@ -198,44 +198,44 @@ export default function ProductDetails({ product }) {
             )}
 
             {/* Quantity & Buttons */}
-            <div className="flex items-center gap-2 mt-6 w-full flex-nowrap">
-              <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full text-sm">
+            {product.quantity > 1 ? (
+              <div className="flex items-center gap-2 mt-6 w-full flex-nowrap">
+                <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full text-sm">
+                  <button
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    className="bg-gray-200 text-gray-800 rounded-full p-1 hover:bg-gray-300 transition text-xs"
+                  >
+                    <FaMinus className="w-3 h-3" />
+                  </button>
+                  <span className="text-sm text-gray-900 font-bold min-w-[20px] text-center">
+                    {quantity}
+                  </span>
+                  <button
+                    onClick={() => setQuantity((q) => q + 1)}
+                    className="bg-gray-200 text-gray-800 rounded-full p-1 hover:bg-gray-300 transition text-xs"
+                  >
+                    <FaPlus className="w-3 h-3" />
+                  </button>
+                </div>
+
                 <button
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="bg-gray-200 text-gray-800 rounded-full p-1 hover:bg-gray-300 transition text-xs"
+                  onClick={handleAddToCart}
+                  disabled={added}
+                  className={`flex-1 bg-[#063238] text-white py-2 rounded-lg font-semibold hover:bg-blue-600 transition shadow-md text-xs whitespace-nowrap`}
                 >
-                  <FaMinus className="w-3 h-3" />
+                  {added ? "Added!" : "কার্টে যোগ করুন"}
                 </button>
-                <span className="text-sm text-gray-900 font-bold min-w-[20px] text-center">
-                  {quantity}
-                </span>
+
                 <button
-                  onClick={() => setQuantity((q) => q + 1)}
-                  className="bg-gray-200 text-gray-800 rounded-full p-1 hover:bg-gray-300 transition text-xs"
+                  onClick={handleOrderNow}
+                  className="flex-1 bg-green-700 text-white py-2 rounded-lg font-semibold hover:bg-green-800 transition shadow-md text-xs whitespace-nowrap"
                 >
-                  <FaPlus className="w-3 h-3" />
+                  অর্ডার করুন
                 </button>
               </div>
-
-              <button
-                onClick={handleAddToCart}
-                disabled={added}
-                className={`flex-1 bg-blue-700 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition shadow-md text-xs whitespace-nowrap ${
-                  added
-                    ? "bg-gray-400 cursor-not-allowed text-white"
-                    : "bg-[#063238] text-white hover:bg-blue-600"
-                }`}
-              >
-                {added ? "Added!" : "কার্টে যোগ করুন"}
-              </button>
-
-              <button
-                onClick={handleOrderNow}
-                className="flex-1 bg-green-700 text-white py-2 rounded-lg font-semibold hover:bg-green-800 transition shadow-md text-xs whitespace-nowrap"
-              >
-                অর্ডার করুন
-              </button>
-            </div>
+            ) : (
+              <p className="text-red-600 font-bold text-lg mt-2">Sold Out</p>
+            )}
           </div>
 
           <div className="hidden lg:block">
