@@ -1,6 +1,7 @@
 "use client";
 
-import { Menu, User, X } from "lucide-react";
+import { useCart } from "@/app/context/CartContext";
+import { Menu, ShoppingCart, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -8,6 +9,7 @@ export default function MobileHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState("categories");
+  const { totalQuantity } = useCart();
 
   useEffect(() => {
     setMounted(true);
@@ -33,8 +35,17 @@ export default function MobileHeader() {
           <Menu className="w-6 h-6" />
         </button>
         <div className="text-xl font-bold tracking-wide">Legacy Lungi</div>
-        <Link href="/account" className="text-white">
-          <User size={20} />
+        <Link
+          href="/checkout/cart"
+          className="relative flex flex-col items-center text-gray-700"
+        >
+          <ShoppingCart size={22} />
+          {totalQuantity > 0 && (
+            <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+              {totalQuantity}
+            </span>
+          )}
+          <span className="mt-1 text-xs">Cart</span>
         </Link>
       </div>
 
