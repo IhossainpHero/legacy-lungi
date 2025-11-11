@@ -106,7 +106,6 @@ export default function CategorySliderClient({ categories = [] }) {
           )}
         </div>
 
-        {/* ✅ Clickable Dots */}
         {loaded && instanceRef.current && (
           <div className="flex justify-center mt-4 space-x-2">
             {Array.from({ length: totalDots }).map((_, idx) => (
@@ -119,6 +118,7 @@ export default function CategorySliderClient({ categories = [] }) {
                 className={`w-2.5 h-2.5 rounded-full transition-colors duration-300 ${
                   currentDot === idx ? "bg-[#063238]" : "bg-gray-300"
                 }`}
+                aria-label={`Go to slide ${idx + 1}`} // ✅ Add this
               />
             ))}
           </div>

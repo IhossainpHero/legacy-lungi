@@ -31,13 +31,18 @@ export default function MobileHeader() {
     <header className="fixed top-0 left-0 right-0 bg-[#063238] text-white shadow-md z-50">
       {/* Top Bar */}
       <div className="flex justify-between items-center px-4 py-3">
-        <button onClick={() => setMenuOpen(!menuOpen)} className="text-white">
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="text-white"
+          aria-label="Open menu"
+        >
           <Menu className="w-6 h-6" />
         </button>
+
         <div className="text-xl font-bold tracking-wide">Legacy Lungi</div>
         <Link
           href="/checkout/cart"
-          className="relative flex flex-col items-center text-gray-700"
+          className="relative flex flex-col items-center text-gray-900"
         >
           <ShoppingCart size={22} />
           {totalQuantity > 0 && (

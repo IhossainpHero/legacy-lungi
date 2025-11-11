@@ -17,7 +17,6 @@ export async function POST(req) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    // ✅ Debugging log (production-safe)
     console.log("🚀 Upload started to Cloudinary...");
 
     const uploadResult = await new Promise((resolve, reject) => {
@@ -26,8 +25,11 @@ export async function POST(req) {
           folder: "products",
           format: "webp",
           transformation: [
-            { width: 800, height: 800, crop: "limit" },
-            { quality: "auto" },
+            // ✅ Higher resolution for sharp images
+            { width: 1600, height: 1600, crop: "limit" },
+            // ✅ Best possible quality while keeping size optimized
+            { quality: "auto:best" },
+            // ✅ Automatically select the most efficient format (webp/avif)
             { fetch_format: "auto" },
           ],
         },

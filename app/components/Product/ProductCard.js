@@ -53,7 +53,7 @@ export default function ProductCard({
             className="object-cover w-full h-full rounded-xl"
           />
           {discount && (
-            <span className="absolute top-2 left-2 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-md">
+            <span className="absolute top-2 left-2 bg-green-700 text-white text-xs font-bold px-2 py-1 rounded-lg shadow-md">
               -{discount}%
             </span>
           )}
