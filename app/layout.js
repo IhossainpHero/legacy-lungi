@@ -1,9 +1,10 @@
-import ClientOnly from "@/app/components/ClientOnly"; // wrap client components
-import Footer from "@/app/components/Footer";
-import BottomNavbar from "@/app/components/Header/BottomNavbar";
-import DesktopNavbar from "@/app/components/Header/DesktopNavbar";
-import MobileHeader from "@/app/components/Header/MobileHeader";
-
+// app/layout.js (Server Component)
+import ClientOnly from "./components/ClientOnly";
+import DataLayerInit from "./components/DataLayerInit";
+import Footer from "./components/Footer";
+import BottomNavbar from "./components/Header/BottomNavbar";
+import DesktopNavbar from "./components/Header/DesktopNavbar";
+import MobileHeader from "./components/Header/MobileHeader";
 import { CartProvider } from "./context/CartContext";
 import "./globals.css";
 
@@ -43,6 +44,11 @@ export default function RootLayout({ children }) {
 
           {/* Footer */}
           <Footer />
+
+          {/* Client-side Data Layer */}
+          <ClientOnly>
+            <DataLayerInit />
+          </ClientOnly>
         </CartProvider>
       </body>
     </html>

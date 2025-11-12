@@ -3,6 +3,7 @@
 import { useCart } from "@/app/context/CartContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function CartPage() {
   const {
@@ -27,7 +28,45 @@ export default function CartPage() {
   // 🔹 Total calculation
   const total = subtotal + shippingCharge;
 
+  // 🔹 Page view tracking
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "page_view",
+        page: {
+          title: "Cart Page",
+          path: "/cart",
+        },
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }, []);
+
   const handleCheckout = () => {
+    // ✅ Data Layer Push for initiate_checkout
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "initiate_checkout",
+        ecommerce: {
+          items: cartItems.map((item) => ({
+            item_id: item._id,
+            item_name: item.name,
+            price: item.sale_price,
+            quantity: item.quantity,
+            item_url: `/products/${item.slug}`,
+            item_image: item.image,
+            size: item.selectedSize || "N/A",
+          })),
+          value: total, // Total amount including shipping
+          currency: "BDT",
+        },
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    // Redirect to checkout
     router.push("/checkout");
   };
 
@@ -42,7 +81,6 @@ export default function CartPage() {
           আপনার কার্ট বর্তমানে খালি আছে 🛍️
         </p>
       ) : (
-        // 🔹 এখানে Flex/Grid ব্যবহার করা হচ্ছে
         <div className="flex flex-col lg:flex-row gap-6 max-w-6xl mx-auto">
           {/* 🧺 Product List Section */}
           <div className="flex-1 flex flex-col gap-6">

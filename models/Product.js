@@ -15,7 +15,12 @@ const productSchema = new Schema({
   sale_price: { type: Number, default: 0 }, // new price
   description: String,
   discount: { type: Number, default: 0 },
-  quantity: { type: Number, default: 0 }, // ✅ নতুন ফিল্ড
+  // 🆕 নতুন ফিল্ড — stock status
+  stock_status: {
+    type: String,
+    enum: ["In Stock", "Sold Out"],
+    default: "In Stock",
+  },
   main_image: { type: String, required: true }, // main image
   images: [String], // array for thumbnails or additional images
   sizes: [String],

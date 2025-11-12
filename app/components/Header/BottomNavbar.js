@@ -1,13 +1,16 @@
 "use client";
+
 import { useCart } from "@/app/context/CartContext";
 import { Home, Menu, Phone, ShoppingBag, ShoppingCart } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function BottomNavbar() {
   const { totalQuantity } = useCart(); // ✅ totalQuantity from context
   const [mounted, setMounted] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => setMounted(true), []);
 
@@ -34,6 +37,19 @@ export default function BottomNavbar() {
     { name: "সাদা এবং অন্যান্য", slug: "white-and-others" },
   ];
 
+  // ✅ Cart click handler for Data Layer
+  const handleCartClick = () => {
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "cart_icon_click",
+        total_items: totalQuantity,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    router.push("/checkout/cart");
+  };
+
   return (
     <>
       <nav className="fixed bottom-0 w-full bg-white border-t shadow-md flex justify-around py-2 z-50">
@@ -59,9 +75,10 @@ export default function BottomNavbar() {
           <span className="mt-1 text-xs">Shop</span>
         </Link>
 
-        <Link
-          href="/checkout/cart"
-          className="relative flex flex-col items-center text-gray-700"
+        {/* Cart with Data Layer */}
+        <div
+          onClick={handleCartClick}
+          className="relative flex flex-col items-center text-gray-700 cursor-pointer"
         >
           <ShoppingCart size={22} />
           {totalQuantity > 0 && (
@@ -70,7 +87,7 @@ export default function BottomNavbar() {
             </span>
           )}
           <span className="mt-1 text-xs">Cart</span>
-        </Link>
+        </div>
 
         <a
           href="https://wa.me/8801742801735"

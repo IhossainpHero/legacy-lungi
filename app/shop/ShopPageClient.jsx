@@ -4,7 +4,7 @@
 import DropdownFilter from "@/app/components/DropdownFilter";
 import ProductCard from "@/app/components/Product/ProductCard";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // --- Filters ---
 const CATEGORIES = [
@@ -30,6 +30,61 @@ export default function ShopPageClient({ products }) {
   const [activeCategory, setActiveCategory] = useState(CATEGORIES[0]);
   const [activePriceRange, setActivePriceRange] = useState(PRICE_RANGES[0]);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // ✅ Track shop page view on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "shop_page_view",
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }, []);
+
+  // ✅ Track category filter change
+  useEffect(() => {
+    if (typeof window !== "undefined" && activeCategory.value !== "all") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "filter_change",
+        filter_type: "category",
+        filter_value: activeCategory.label,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }, [activeCategory]);
+
+  // ✅ Track price range filter change
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      activePriceRange.label !== "সকল মূল্য"
+    ) {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "filter_change",
+        filter_type: "price_range",
+        filter_value: activePriceRange.label,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }, [activePriceRange]);
+
+  // ✅ Track search query change
+  useEffect(() => {
+    if (typeof window !== "undefined" && searchQuery.trim() !== "") {
+      const timeout = setTimeout(() => {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: "search_query",
+          search_term: searchQuery,
+          timestamp: new Date().toISOString(),
+        });
+      }, 500); // debounce 500ms
+      return () => clearTimeout(timeout);
+    }
+  }, [searchQuery]);
 
   // ✅ Filter Logic
   const filteredProducts = products.filter((product) => {
@@ -105,7 +160,6 @@ export default function ShopPageClient({ products }) {
                 name={product.name || "No Name"}
                 sale_price={product.sale_price || 0}
                 regular_price={product.regular_price || 0}
-                // ✅ শুধু main_image ব্যবহার করা হবে
                 image={
                   product.main_image || product.image || "/placeholder.png"
                 }
@@ -114,6 +168,7 @@ export default function ShopPageClient({ products }) {
                 description={product.description || ""}
                 sizes={product.sizes || []}
                 sku={product.sku || ""}
+                stock_status={product.stock_status || "In Stock"}
               />
             ))}
           </div>

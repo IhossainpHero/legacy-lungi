@@ -33,13 +33,13 @@ export default function AddProductPage() {
   const [salePrice, setSalePrice] = useState("");
   const [description, setDescription] = useState("");
   const [discount, setDiscount] = useState("");
-  const [quantity, setQuantity] = useState(""); // ✅ নতুন যোগ করা state
+  const [stockStatus, setStockStatus] = useState("In Stock"); // ✅ নতুন ফিল্ড
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   // Images state
-  const [images, setImages] = useState([]); // Cloudinary URLs
-  const [previews, setPreviews] = useState([]); // Local previews
+  const [images, setImages] = useState([]);
+  const [previews, setPreviews] = useState([]);
   const [mainImageIndex, setMainImageIndex] = useState(0);
 
   // ✅ Image Upload handler
@@ -113,7 +113,7 @@ export default function AddProductPage() {
       main_image: images[mainImageIndex],
       images,
       sizes: sizeArray,
-      quantity: Number(quantity) || 0, // ✅ নতুন ফিল্ড
+      stock_status: stockStatus, // ✅ নতুন ফিল্ড পাঠানো হচ্ছে
     };
 
     try {
@@ -122,6 +122,8 @@ export default function AddProductPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(productData),
       });
+
+      console.log(productData);
 
       const result = await res.json();
 
@@ -148,7 +150,7 @@ export default function AddProductPage() {
     setSalePrice("");
     setDescription("");
     setDiscount("");
-    setQuantity(""); // ✅ রিসেট
+    setStockStatus("In Stock");
     setImages([]);
     setPreviews([]);
     setMainImageIndex(0);
@@ -296,14 +298,18 @@ export default function AddProductPage() {
                   />
                 </div>
 
+                {/* 🆕 Stock Status */}
                 <div className="flex flex-col">
-                  <Label>Quantity</Label>
+                  <Label>Stock Status</Label>
                   <Input
-                    type="number"
-                    value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
-                    placeholder="Enter product quantity"
+                    type="text"
+                    value={stockStatus}
+                    disabled
+                    className="bg-gray-100 font-semibold text-green-700"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    (New product add করার সময় শুধু "In Stock" থাকবে)
+                  </p>
                 </div>
               </div>
             </div>

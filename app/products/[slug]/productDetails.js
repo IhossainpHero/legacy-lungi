@@ -3,7 +3,7 @@
 import { useCart } from "@/app/context/CartContext";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   FaChevronLeft,
   FaChevronRight,
@@ -35,13 +35,11 @@ export default function ProductDetails({ product }) {
 
   // Double-click / double-tap handler
   const lastTapRef = useRef(0);
-
   const handleZoomToggle = (e) => {
     const now = Date.now();
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX ?? e.touches?.[0]?.clientX) - rect.left) / rect.width;
     const y = ((e.clientY ?? e.touches?.[0]?.clientY) - rect.top) / rect.height;
-
     const isDoubleTap = now - lastTapRef.current < 300;
     lastTapRef.current = now;
 
@@ -61,8 +59,29 @@ export default function ProductDetails({ product }) {
   const nextImage = () =>
     setMainIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
 
+  // ---------------- Page View Event ----------------
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+
+      // Avoid duplicate page_view push
+      const lastEvent = window.dataLayer[window.dataLayer.length - 1];
+      if (
+        lastEvent?.event !== "page_view" ||
+        lastEvent?.page !== `/products/${product.slug}`
+      ) {
+        window.dataLayer.push({
+          event: "page_view",
+          page: `/products/${product.slug}`,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    }
+  }, [product.slug]);
+
+  // ---------------- Add To Cart ----------------
   const handleAddToCart = () => {
-    addToCart({
+    const productData = {
       _id: product._id,
       name: product.name,
       sale_price: product.sale_price,
@@ -73,15 +92,98 @@ export default function ProductDetails({ product }) {
       discount: product.discount,
       selectedSize: product.sizes?.[0] || undefined,
       quantity,
-    });
+    };
+
+    addToCart(productData);
+
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "add_to_cart",
+        ecommerce: {
+          items: [
+            {
+              item_id: productData._id,
+              item_name: productData.name,
+              price: productData.sale_price || productData.regular_price,
+              discount: productData.discount || 0,
+              item_url: `/products/${productData.slug}`,
+              item_image: productData.image,
+              size: productData.selectedSize || "N/A",
+              quantity: productData.quantity || 1,
+            },
+          ],
+        },
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    fetch("/api/track-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event: "add_to_cart",
+        ip: "USER_IP_HERE",
+        ua: navigator.userAgent,
+        custom_data: {
+          product_id: productData._id,
+          product_name: productData.name,
+          price: productData.sale_price || productData.regular_price,
+          quantity: productData.quantity || 1,
+        },
+      }),
+    }).catch((err) => console.error("Server tracking error:", err));
+
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
 
+  // ---------------- Order Now ----------------
   const handleOrderNow = () => {
-    handleAddToCart();
+    handleAddToCart(); // already pushes add_to_cart
+
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "order_now_click",
+        ecommerce: {
+          items: [
+            {
+              item_id: product._id,
+              item_name: product.name,
+              price: product.sale_price || product.regular_price,
+              discount: product.discount || 0,
+              item_url: `/products/${product.slug}`,
+              item_image: mainImage,
+              size: product.sizes?.[0] || "N/A",
+              quantity,
+            },
+          ],
+        },
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    fetch("/api/track-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event: "order_now_click",
+        ip: "USER_IP_HERE",
+        ua: navigator.userAgent,
+        custom_data: {
+          product_id: product._id,
+          product_name: product.name,
+          price: product.sale_price || product.regular_price,
+          quantity,
+        },
+      }),
+    }).catch((err) => console.error("Server tracking error:", err));
+
     router.push("/checkout");
   };
+
+  const isSoldOut = product.stock_status?.toLowerCase().trim() === "sold out";
 
   return (
     <div className="p-6 sm:p-10 max-w-6xl mx-auto bg-white shadow-lg rounded-2xl mt-8">
@@ -113,31 +215,27 @@ export default function ProductDetails({ product }) {
               priority
               className="object-cover object-center transition-transform duration-300 hover:scale-105"
             />
-
-            {/* Left Arrow */}
             {images.length > 1 && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  prevImage();
-                }}
-                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-gray-200 rounded-full p-2 hover:bg-gray-300 z-10"
-              >
-                <FaChevronLeft className="w-4 h-4 text-gray-800" />
-              </button>
-            )}
-
-            {/* Right Arrow */}
-            {images.length > 1 && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  nextImage();
-                }}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-200 rounded-full p-2 hover:bg-gray-300 z-10"
-              >
-                <FaChevronRight className="w-4 h-4 text-gray-800" />
-              </button>
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    prevImage();
+                  }}
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-gray-200 rounded-full p-2 hover:bg-gray-300 z-10"
+                >
+                  <FaChevronLeft className="w-4 h-4 text-gray-800" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    nextImage();
+                  }}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-200 rounded-full p-2 hover:bg-gray-300 z-10"
+                >
+                  <FaChevronRight className="w-4 h-4 text-gray-800" />
+                </button>
+              </>
             )}
           </div>
 
@@ -168,7 +266,7 @@ export default function ProductDetails({ product }) {
           )}
         </div>
 
-        {/* Product Info + Contact */}
+        {/* Product Info */}
         <div className="flex flex-col justify-between gap-6">
           <div>
             <h2 className="text-2xl lg:text-3xl text-gray-700 font-bold">
@@ -190,52 +288,60 @@ export default function ProductDetails({ product }) {
                 <p className="text-gray-800 text-sm sm:text-base">
                   সাইজ: {product.sizes.join(", ")}
                 </p>
-                {/* Quantity in stock */}
-                {/* <p className="text-gray-900 text-xs mt-1">
-                  {product.quantity} in stock
-                </p> */}
+                <p
+                  className={`text-xs mt-1 ${
+                    product.stock_status?.toLowerCase() === "sold out"
+                      ? "text-red-600 font-bold"
+                      : "text-gray-900"
+                  }`}
+                >
+                  {product.stock_status}
+                </p>
               </div>
             )}
 
             {/* Quantity & Buttons */}
-            {product.quantity > 1 ? (
-              <div className="flex items-center gap-2 mt-6 w-full flex-nowrap">
-                <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full text-sm">
-                  <button
-                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    className="bg-gray-200 text-gray-800 rounded-full p-1 hover:bg-gray-300 transition text-xs"
-                  >
-                    <FaMinus className="w-3 h-3" />
-                  </button>
-                  <span className="text-sm text-gray-900 font-bold min-w-[20px] text-center">
-                    {quantity}
-                  </span>
-                  <button
-                    onClick={() => setQuantity((q) => q + 1)}
-                    className="bg-gray-200 text-gray-800 rounded-full p-1 hover:bg-gray-300 transition text-xs"
-                  >
-                    <FaPlus className="w-3 h-3" />
-                  </button>
-                </div>
-
+            <div className="flex items-center gap-2 mt-6 w-full flex-nowrap">
+              <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full text-sm">
                 <button
-                  onClick={handleAddToCart}
-                  disabled={added}
-                  className={`flex-1 bg-[#063238] text-white py-2 rounded-lg font-semibold hover:bg-blue-600 transition shadow-md text-xs whitespace-nowrap`}
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  className="bg-gray-200 text-gray-800 rounded-full p-1 hover:bg-gray-300 transition text-xs"
+                  disabled={isSoldOut}
                 >
-                  {added ? "Added!" : "কার্টে যোগ করুন"}
+                  <FaMinus className="w-3 h-3" />
                 </button>
-
+                <span className="text-sm text-gray-900 font-bold min-w-[20px] text-center">
+                  {quantity}
+                </span>
                 <button
-                  onClick={handleOrderNow}
-                  className="flex-1 bg-green-700 text-white py-2 rounded-lg font-semibold hover:bg-green-800 transition shadow-md text-xs whitespace-nowrap"
+                  onClick={() => setQuantity((q) => q + 1)}
+                  className="bg-gray-200 text-gray-800 rounded-full p-1 hover:bg-gray-300 transition text-xs"
+                  disabled={isSoldOut}
                 >
-                  অর্ডার করুন
+                  <FaPlus className="w-3 h-3" />
                 </button>
               </div>
-            ) : (
-              <p className="text-red-600 font-bold text-lg mt-2">Sold Out</p>
-            )}
+
+              <button
+                onClick={handleAddToCart}
+                disabled={added || isSoldOut}
+                className={`flex-1 bg-[#063238] text-white py-2 rounded-lg font-semibold hover:bg-blue-600 transition shadow-md text-xs whitespace-nowrap ${
+                  isSoldOut ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                {added ? "Added!" : "কার্টে যোগ করুন"}
+              </button>
+
+              <button
+                onClick={handleOrderNow}
+                disabled={isSoldOut}
+                className={`flex-1 bg-green-700 text-white py-2 rounded-lg font-semibold hover:bg-green-800 transition shadow-md text-xs whitespace-nowrap ${
+                  isSoldOut ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                অর্ডার করুন
+              </button>
+            </div>
           </div>
 
           <div className="hidden lg:block">
@@ -260,7 +366,6 @@ export default function ProductDetails({ product }) {
           >
             <FaTimes />
           </button>
-
           <div
             className={`relative w-full max-w-3xl h-[80vh] flex items-center justify-center overflow-hidden transition-all duration-300 ${
               zoom > 1 ? "cursor-zoom-out" : "cursor-zoom-in"
@@ -278,8 +383,6 @@ export default function ProductDetails({ product }) {
                 transformOrigin: `${zoomPosition.x} ${zoomPosition.y}`,
               }}
             />
-
-            {/* Left Arrow */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -289,8 +392,6 @@ export default function ProductDetails({ product }) {
             >
               <FaChevronLeft className="text-white" />
             </button>
-
-            {/* Right Arrow */}
             <button
               onClick={(e) => {
                 e.stopPropagation();

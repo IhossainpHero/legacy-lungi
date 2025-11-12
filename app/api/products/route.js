@@ -14,7 +14,7 @@ function generateSlug(name) {
     .replace(/\s+/g, "-");
 }
 
-// GET — সব প্রোডাক্ট দেখাবে
+// 🟢 GET — সব প্রোডাক্ট দেখাবে
 export async function GET() {
   try {
     await connectDB();
@@ -29,7 +29,7 @@ export async function GET() {
   }
 }
 
-// POST — নতুন প্রোডাক্ট যোগ করা হবে
+// 🟢 POST — নতুন প্রোডাক্ট যোগ করা হবে
 export async function POST(req) {
   try {
     await connectDB();
@@ -45,11 +45,12 @@ export async function POST(req) {
       discount,
       images, // Cloudinary URLs array
       sizes,
-      quantity, // ✅ এখানে include করো
+      stock_status, // নতুন ফিল্ড
     } = data;
 
-    console.log("Incoming product data:", data); // debug: check quantity
+    console.log("Backend received:", data);
 
+    // ✅ Validation
     if (!name || !images || !Array.isArray(images) || images.length === 0) {
       return NextResponse.json(
         {
@@ -60,8 +61,14 @@ export async function POST(req) {
       );
     }
 
+    // 🧩 Stock status validation
+    const finalStockStatus = ["In Stock", "Sold Out"].includes(stock_status)
+      ? stock_status
+      : "In Stock"; // অন্যকিছু দিলে default In Stock
+
     const slug = generateSlug(name);
 
+    // 🏗️ নতুন Product তৈরি
     const product = await Product.create({
       name,
       slug,
@@ -72,10 +79,10 @@ export async function POST(req) {
       sale_price: Number(sale_price) || 0,
       description,
       discount: Number(discount) || 0,
-      quantity: Number(quantity) || 0, // ✅ এখানে save হবে
       main_image: images[0],
       images,
       sizes,
+      stock_status: finalStockStatus, // ✅ database-এ save হবে
     });
 
     return NextResponse.json(

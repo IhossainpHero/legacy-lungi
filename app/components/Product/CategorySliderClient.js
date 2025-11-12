@@ -89,7 +89,10 @@ export default function CategorySliderClient({ categories = [] }) {
           {loaded && (
             <button
               onClick={() => instanceRef.current?.prev()}
-              className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-white text-gray-900 rounded-full p-2 shadow hover:bg-gray-100 z-10"
+              className="absolute top-1/2 left-0 transform -translate-y-1/2 
+             bg-white/20 backdrop-blur-sm text-gray-800 
+             rounded-full p-2 shadow-sm hover:bg-white/40 
+             transition-all duration-200 z-10 border border-white/20"
             >
               &#8592;
             </button>
@@ -99,7 +102,10 @@ export default function CategorySliderClient({ categories = [] }) {
           {loaded && (
             <button
               onClick={() => instanceRef.current?.next()}
-              className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-white text-gray-900 rounded-full p-2 shadow hover:bg-gray-100 z-10"
+              className="absolute top-1/2 right-0 transform -translate-y-1/2 
+             bg-white/30 backdrop-blur-sm text-gray-800 
+             rounded-full p-2 shadow-sm hover:bg-white/40 
+             transition-all duration-200 z-10 border border-white/20"
             >
               &#8594;
             </button>

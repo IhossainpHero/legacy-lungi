@@ -104,10 +104,51 @@ export default function CategoryClientContent({
   );
   const [selectedPriceRange, setSelectedPriceRange] = useState(PRICE_RANGES[0]);
 
+  // ✅ Track category view
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "category_view",
+        category_name: currentCategoryName,
+        category_slug: selectedCategory.slug,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }, [currentCategoryName, selectedCategory.slug]);
+
+  // Handle category selection
   const handleSelectCategory = (cat) => {
     setSelectedCategory(cat);
     if (cat.slug !== initialSlug) {
       router.push(`/category/${cat.slug}`);
+    }
+
+    // ✅ Track filter change - category
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "filter_change",
+        filter_type: "category",
+        filter_value: cat.name,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  };
+
+  // Handle price range selection
+  const handleSelectPriceRange = (range) => {
+    setSelectedPriceRange(range);
+
+    // ✅ Track filter change - price
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "filter_change",
+        filter_type: "price_range",
+        filter_value: range.label,
+        timestamp: new Date().toISOString(),
+      });
     }
   };
 
@@ -149,7 +190,7 @@ export default function CategoryClientContent({
             title="মূল্য পরিসীমা"
             options={PRICE_RANGES}
             activeValue={selectedPriceRange}
-            onSelect={setSelectedPriceRange}
+            onSelect={handleSelectPriceRange}
           />
         </div>
       </div>
@@ -168,13 +209,13 @@ export default function CategoryClientContent({
               name={product.name || "No Name"}
               sale_price={product.sale_price || 0}
               regular_price={product.regular_price || 0}
-              // ✅ শুধু main_image দেখানো হবে
               image={product.main_image || product.image || "/placeholder.png"}
               slug={product.slug || product.sku || ""}
               discount={product.discount || 0}
               description={product.description || ""}
               sizes={product.sizes || []}
               sku={product.sku || ""}
+              stock_status={product.stock_status || "In Stock"}
             />
           ))}
         </div>

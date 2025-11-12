@@ -3,7 +3,7 @@
 import { useCart } from "@/app/context/CartContext";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaTimes } from "react-icons/fa";
 
 export default function CheckoutPage() {
@@ -43,7 +43,22 @@ export default function CheckoutPage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Order Submit + Optimistic Stock Update
+  // 🔹 Page view event
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "page_view",
+        page: {
+          title: "Checkout Page",
+          path: "/checkout",
+        },
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }, []);
+
+  // ✅ Order Submit + Optimistic Stock Update + DataLayer
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.name || !form.phone || !form.address) {
@@ -72,18 +87,24 @@ export default function CheckoutPage() {
       status: "pending",
     };
 
-    // 2️⃣ Optimistically decrease stock in UI
-    const updatedCart = cartItems.map((p) => ({
-      ...p,
-      quantity: p.quantity, // keep same in UI cart for order
-    }));
-    setCartItems((prev) =>
-      prev.map((item) => {
-        const cartItem = cartItems.find((c) => c._id === item._id);
-        if (!cartItem) return item;
-        return { ...item, quantity: item.quantity - cartItem.quantity }; // UI update
-      })
-    );
+    // 2️⃣ Push checkout_initiate to dataLayer
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "checkout_initiate",
+        ecommerce: {
+          currency: "BDT",
+          value: total,
+          items: cartItems.map((p) => ({
+            item_id: p._id,
+            item_name: p.name,
+            price: p.sale_price,
+            quantity: p.quantity,
+          })),
+        },
+        timestamp: new Date().toISOString(),
+      });
+    }
 
     try {
       // 3️⃣ Create order
@@ -104,7 +125,7 @@ export default function CheckoutPage() {
       // 4️⃣ Update stock in backend (sequentially)
       for (const item of cartItems) {
         const stockRes = await fetch(`/api/products/${item._id}`, {
-          method: "POST",
+          method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ quantity: item.quantity }),
           cache: "no-store",
@@ -114,7 +135,27 @@ export default function CheckoutPage() {
         }
       }
 
-      // 5️⃣ Clear cart & save order info
+      // 5️⃣ Push purchase event to dataLayer
+      if (typeof window !== "undefined") {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: "purchase",
+          ecommerce: {
+            transaction_id: orderResult.orderId,
+            value: total,
+            currency: "BDT",
+            items: cartItems.map((p) => ({
+              item_id: p._id,
+              item_name: p.name,
+              price: p.sale_price,
+              quantity: p.quantity,
+            })),
+          },
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      // 6️⃣ Clear cart & save order info
       clearCart();
       localStorage.setItem(
         "latestOrder",
@@ -125,7 +166,7 @@ export default function CheckoutPage() {
         })
       );
 
-      // 6️⃣ Redirect
+      // 7️⃣ Redirect
       router.push("/checkout/order-recieved");
     } catch (err) {
       console.error("❌ Order Error:", err);

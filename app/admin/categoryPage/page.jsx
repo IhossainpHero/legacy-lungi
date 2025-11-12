@@ -2,7 +2,7 @@
 
 import { Button } from "@/app/components/UI/Button";
 import { Input } from "@/app/components/UI/input";
-import { useState } from "react"; // ✅ React থেকে import
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 const categories = [
@@ -19,6 +19,34 @@ export default function CategoryPage() {
   const [selectedCategory, setSelectedCategory] = useState(categories[0]);
   const [image, setImage] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [productsInCategory, setProductsInCategory] = useState([]);
+  const [isCategorySoldOut, setIsCategorySoldOut] = useState(false);
+
+  // ✅ fetch products whenever category changes
+  useEffect(() => {
+    async function fetchProducts() {
+      if (!selectedCategory) return;
+      try {
+        const res = await fetch(
+          `/api/products?category=${selectedCategory.slug}`
+        );
+        const data = await res.json();
+        setProductsInCategory(data);
+
+        // sold out check
+        const soldOut =
+          !data ||
+          data.length === 0 ||
+          data.every((p) => p.stock_status?.toLowerCase() === "sold out");
+        setIsCategorySoldOut(soldOut);
+      } catch (err) {
+        console.error("Failed to fetch products for category:", err);
+        setProductsInCategory([]);
+        setIsCategorySoldOut(true);
+      }
+    }
+    fetchProducts();
+  }, [selectedCategory]);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -34,8 +62,8 @@ export default function CategoryPage() {
 
     const formData = new FormData();
     formData.append("file", image);
-    formData.append("name", selectedCategory.name); // ✅ বাংলা নাম
-    formData.append("slug", selectedCategory.slug); // ✅ ইংরেজি slug
+    formData.append("name", selectedCategory.name);
+    formData.append("slug", selectedCategory.slug);
 
     try {
       const res = await fetch("/api/categories", {
@@ -44,8 +72,6 @@ export default function CategoryPage() {
       });
 
       const data = await res.json();
-      console.log(data);
-
       if (res.ok) {
         toast.success("Category added successfully!");
         setSelectedCategory(categories[0]);
@@ -77,7 +103,13 @@ export default function CategoryPage() {
         >
           {categories.map((cat) => (
             <option key={cat.slug} value={cat.slug}>
-              {cat.name}
+              {cat.name}{" "}
+              {productsInCategory &&
+              productsInCategory.every(
+                (p) => p.stock_status?.toLowerCase() === "sold out"
+              )
+                ? "(Sold Out)"
+                : ""}
             </option>
           ))}
         </select>
@@ -88,9 +120,22 @@ export default function CategoryPage() {
           className="text-gray-800"
         />
 
-        <Button onClick={handleAddCategory} disabled={uploading}>
-          {uploading ? "Adding..." : "Add Category"}
+        <Button
+          onClick={handleAddCategory}
+          disabled={uploading || isCategorySoldOut}
+        >
+          {uploading
+            ? "Adding..."
+            : isCategorySoldOut
+            ? "Sold Out"
+            : "Add Category"}
         </Button>
+
+        {isCategorySoldOut && (
+          <p className="text-red-600 text-sm mt-1">
+            এই category তে বর্তমানে সব product sold out
+          </p>
+        )}
       </div>
     </div>
   );

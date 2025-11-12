@@ -42,7 +42,7 @@ export default async function ProductGrid() {
             description={p.description}
             sizes={p.sizes || []}
             sku={p.sku}
-            quantity={p.quantity}
+            stock_status={p.stock_status}
           />
         ))}
       </div>
