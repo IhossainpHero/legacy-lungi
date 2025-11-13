@@ -19,8 +19,6 @@ export default function CheckoutPage() {
   } = useCart();
 
   const router = useRouter();
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
-
   const shippingCharge =
     shippingLocation === "inside"
       ? 80
@@ -30,12 +28,7 @@ export default function CheckoutPage() {
 
   const total = subtotal + shippingCharge;
 
-  const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    address: "",
-  });
-
+  const [form, setForm] = useState({ name: "", phone: "", address: "" });
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -43,22 +36,34 @@ export default function CheckoutPage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 🔹 Page view event
+  // 🔹 PageView Event
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const eventId = `pageview-${Date.now()}`;
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
         event: "page_view",
-        page: {
-          title: "Checkout Page",
-          path: "/checkout",
-        },
+        page: { title: "Checkout Page", path: "/checkout" },
+        event_id: eventId,
         timestamp: new Date().toISOString(),
+      });
+
+      fetch("/api/track-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event_name: "PageView",
+          event_id: eventId,
+          custom_data: { page_title: "Checkout Page", page_path: "/checkout" },
+          user_data: {
+            client_ip_address: null, // optional, can fill on server
+            client_user_agent: navigator.userAgent || null,
+          },
+        }),
       });
     }
   }, []);
 
-  // ✅ Order Submit + Optimistic Stock Update + DataLayer
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.name || !form.phone || !form.address) {
@@ -68,7 +73,6 @@ export default function CheckoutPage() {
 
     setLoading(true);
 
-    // 1️⃣ Prepare order data
     const orderData = {
       name: form.name,
       phone: form.phone,
@@ -87,7 +91,9 @@ export default function CheckoutPage() {
       status: "pending",
     };
 
-    // 2️⃣ Push checkout_initiate to dataLayer
+    const checkoutEventId = `checkout-${Date.now()}`;
+
+    // 1️⃣ Checkout Initiate → DataLayer + server
     if (typeof window !== "undefined") {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
@@ -102,12 +108,35 @@ export default function CheckoutPage() {
             quantity: p.quantity,
           })),
         },
+        event_id: checkoutEventId,
         timestamp: new Date().toISOString(),
+      });
+
+      fetch("/api/track-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event_name: "InitiateCheckout",
+          event_id: checkoutEventId,
+          custom_data: {
+            currency: "BDT",
+            value: total,
+            contents: cartItems.map((p) => ({
+              id: p._id,
+              quantity: p.quantity,
+              item_price: p.sale_price,
+            })),
+          },
+          user_data: {
+            client_ip_address: null,
+            client_user_agent: navigator.userAgent || null,
+          },
+        }),
       });
     }
 
     try {
-      // 3️⃣ Create order
+      // 2️⃣ Create order
       const orderRes = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -122,20 +151,18 @@ export default function CheckoutPage() {
         return;
       }
 
-      // 4️⃣ Update stock in backend (sequentially)
+      // 3️⃣ Update stock
       for (const item of cartItems) {
-        const stockRes = await fetch(`/api/products/${item._id}`, {
+        await fetch(`/api/products/${item._id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ quantity: item.quantity }),
           cache: "no-store",
         });
-        if (!stockRes.ok) {
-          console.warn(`⚠️ Stock update failed for product ${item._id}`);
-        }
       }
 
-      // 5️⃣ Push purchase event to dataLayer
+      // 4️⃣ Purchase → DataLayer + server-side CAPI
+      const purchaseEventId = `purchase-${Date.now()}`;
       if (typeof window !== "undefined") {
         window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({
@@ -151,11 +178,35 @@ export default function CheckoutPage() {
               quantity: p.quantity,
             })),
           },
+          event_id: purchaseEventId,
           timestamp: new Date().toISOString(),
+        });
+
+        fetch("/api/track-event", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            event_name: "Purchase",
+            event_id: purchaseEventId,
+            custom_data: {
+              currency: "BDT",
+              value: total,
+              transaction_id: orderResult.orderId,
+              contents: cartItems.map((p) => ({
+                id: p._id,
+                quantity: p.quantity,
+                item_price: p.sale_price,
+              })),
+            },
+            user_data: {
+              client_ip_address: null,
+              client_user_agent: navigator.userAgent || null,
+            },
+          }),
         });
       }
 
-      // 6️⃣ Clear cart & save order info
+      // 5️⃣ Clear cart & save order info
       clearCart();
       localStorage.setItem(
         "latestOrder",
@@ -166,7 +217,7 @@ export default function CheckoutPage() {
         })
       );
 
-      // 7️⃣ Redirect
+      // 6️⃣ Redirect
       router.push("/checkout/order-recieved");
     } catch (err) {
       console.error("❌ Order Error:", err);
