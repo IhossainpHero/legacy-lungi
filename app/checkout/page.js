@@ -48,17 +48,18 @@ export default function CheckoutPage() {
         timestamp: new Date().toISOString(),
       });
 
+      const pageViewId = `pageview-${Date.now()}`;
+
       fetch("/api/track-event", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           event_name: "PageView",
-          event_id: eventId,
-          custom_data: { page_title: "Checkout Page", page_path: "/checkout" },
-          user_data: {
-            client_ip_address: null, // optional, can fill on server
-            client_user_agent: navigator.userAgent || null,
-          },
+          event_id: pageViewId,
+          event_time: Math.floor(Date.now() / 1000),
+          action_source: "website",
+          page_title: "Checkout Page",
+          page_path: "/checkout",
         }),
       });
     }
@@ -118,19 +119,15 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           event_name: "InitiateCheckout",
           event_id: checkoutEventId,
-          custom_data: {
-            currency: "BDT",
-            value: total,
-            contents: cartItems.map((p) => ({
-              id: p._id,
-              quantity: p.quantity,
-              item_price: p.sale_price,
-            })),
-          },
-          user_data: {
-            client_ip_address: null,
-            client_user_agent: navigator.userAgent || null,
-          },
+          event_time: Math.floor(Date.now() / 1000),
+          action_source: "website",
+          currency: "BDT",
+          value: Number(total),
+          contents: cartItems.map((p) => ({
+            id: String(p._id),
+            quantity: Number(p.quantity),
+            item_price: Number(p.sale_price),
+          })),
         }),
       });
     }
@@ -188,20 +185,16 @@ export default function CheckoutPage() {
           body: JSON.stringify({
             event_name: "Purchase",
             event_id: purchaseEventId,
-            custom_data: {
-              currency: "BDT",
-              value: total,
-              transaction_id: orderResult.orderId,
-              contents: cartItems.map((p) => ({
-                id: p._id,
-                quantity: p.quantity,
-                item_price: p.sale_price,
-              })),
-            },
-            user_data: {
-              client_ip_address: null,
-              client_user_agent: navigator.userAgent || null,
-            },
+            event_time: Math.floor(Date.now() / 1000),
+            action_source: "website",
+            currency: "BDT",
+            value: Number(total),
+            transaction_id: orderResult.orderId,
+            contents: cartItems.map((p) => ({
+              id: String(p._id),
+              quantity: Number(p.quantity),
+              item_price: Number(p.sale_price),
+            })),
           }),
         });
       }

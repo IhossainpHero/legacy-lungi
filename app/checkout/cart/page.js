@@ -34,22 +34,22 @@ export default function CartPage() {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
         event: "page_view",
-        page: {
-          title: "Cart Page",
-          path: "/cart",
-        },
+        page: { title: "Cart Page", path: "/cart" },
         timestamp: new Date().toISOString(),
       });
     }
   }, []);
 
   const handleCheckout = () => {
-    // ✅ Data Layer Push for initiate_checkout
     if (typeof window !== "undefined") {
       window.dataLayer = window.dataLayer || [];
+
+      // ✅ InitiateCheckout event for GTM & Facebook
       window.dataLayer.push({
-        event: "initiate_checkout",
+        event: "InitiateCheckout",
         ecommerce: {
+          currency: "BDT",
+          value: total,
           items: cartItems.map((item) => ({
             item_id: item._id,
             item_name: item.name,
@@ -59,14 +59,11 @@ export default function CartPage() {
             item_image: item.image,
             size: item.selectedSize || "N/A",
           })),
-          value: total, // Total amount including shipping
-          currency: "BDT",
         },
         timestamp: new Date().toISOString(),
       });
     }
 
-    // Redirect to checkout
     router.push("/checkout");
   };
 

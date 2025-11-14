@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 
 // --- Categories and Price Ranges (Static Data) ---
 const categories = [
+  { name: "সকল ক্যাটাগরি", slug: "all" },
   { name: "ডিপ কালেকশন", slug: "deep-collection" },
   { name: "স্ট্রাইপ এবং চেক লুঙ্গি", slug: "stripe-check" },
   { name: "ফ্যান্সি লুঙ্গি", slug: "fancy-lungi" },
@@ -97,7 +98,6 @@ export default function CategoryClientContent({
   currentCategoryName,
 }) {
   const router = useRouter();
-
   const [products] = useState(initialProducts);
   const [selectedCategory, setSelectedCategory] = useState(
     categories.find((c) => c.slug === initialSlug) || categories[0]
@@ -115,7 +115,7 @@ export default function CategoryClientContent({
         timestamp: new Date().toISOString(),
       });
     }
-  }, [currentCategoryName, selectedCategory.slug]);
+  }, [selectedCategory.slug, currentCategoryName]);
 
   // Handle category selection
   const handleSelectCategory = (cat) => {
@@ -136,25 +136,29 @@ export default function CategoryClientContent({
     }
   };
 
-  // Handle price range selection
+  // Handle price range selection with debounce
   const handleSelectPriceRange = (range) => {
     setSelectedPriceRange(range);
 
-    // ✅ Track filter change - price
     if (typeof window !== "undefined") {
       window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push({
-        event: "filter_change",
-        filter_type: "price_range",
-        filter_value: range.label,
-        timestamp: new Date().toISOString(),
-      });
+      // Debounce
+      setTimeout(() => {
+        window.dataLayer.push({
+          event: "filter_change",
+          filter_type: "price_range",
+          filter_value: range.label,
+          timestamp: new Date().toISOString(),
+        });
+      }, 300);
     }
   };
 
-  // ✅ Filter products by price
+  // ✅ Filter products by category + price
   const filteredProducts = products.filter(
     (p) =>
+      (selectedCategory.slug === "all" ||
+        p.category === selectedCategory.slug) &&
       p.sale_price >= selectedPriceRange.min &&
       p.sale_price <= selectedPriceRange.max
   );
@@ -176,27 +180,23 @@ export default function CategoryClientContent({
       </div>
 
       {/* Filters */}
-      <div className="flex flex-row justify-center items-start gap-4 mb-8">
-        <div className="flex-1 max-w-xs">
-          <DropdownFilter
-            title="ক্যাটাগরি"
-            options={categories}
-            activeValue={selectedCategory}
-            onSelect={handleSelectCategory}
-          />
-        </div>
-        <div className="flex-1 max-w-xs">
-          <DropdownFilter
-            title="মূল্য পরিসীমা"
-            options={PRICE_RANGES}
-            activeValue={selectedPriceRange}
-            onSelect={handleSelectPriceRange}
-          />
-        </div>
+      <div className="flex flex-row justify-center items-start gap-4 mb-8 flex-wrap">
+        <DropdownFilter
+          title="ক্যাটাগরি"
+          options={categories}
+          activeValue={selectedCategory}
+          onSelect={handleSelectCategory}
+        />
+        <DropdownFilter
+          title="মূল্য পরিসীমা"
+          options={PRICE_RANGES}
+          activeValue={selectedPriceRange}
+          onSelect={handleSelectPriceRange}
+        />
       </div>
 
       {/* Products */}
-      {hasError ? (
+      {hasError || filteredProducts.length === 0 ? (
         <p className="text-center text-gray-500 py-10">
           কোন পণ্য পাওয়া যায়নি 😞
         </p>

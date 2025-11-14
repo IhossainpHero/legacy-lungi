@@ -90,12 +90,14 @@ export default function ProductDetails({ product }) {
       slug: product.slug,
       description: product.description,
       discount: product.discount,
-      selectedSize: product.sizes?.[0] || undefined,
+      selectedSize: product.sizes?.[0] || "N/A",
       quantity,
     };
 
+    // 1️⃣ Local Cart
     addToCart(productData);
 
+    // 2️⃣ Client-side DataLayer
     if (typeof window !== "undefined") {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
@@ -109,8 +111,8 @@ export default function ProductDetails({ product }) {
               discount: productData.discount || 0,
               item_url: `/products/${productData.slug}`,
               item_image: productData.image,
-              size: productData.selectedSize || "N/A",
-              quantity: productData.quantity || 1,
+              size: productData.selectedSize,
+              quantity: productData.quantity,
             },
           ],
         },
@@ -118,19 +120,23 @@ export default function ProductDetails({ product }) {
       });
     }
 
+    // 3️⃣ Server-side tracking (CAPI)
     fetch("/api/track-event", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        event: "add_to_cart",
-        ip: "USER_IP_HERE",
-        ua: navigator.userAgent,
-        custom_data: {
-          product_id: productData._id,
-          product_name: productData.name,
-          price: productData.sale_price || productData.regular_price,
-          quantity: productData.quantity || 1,
-        },
+        event_name: "add_to_cart", // ✅ must match route.js
+        currency: "BDT",
+        value: productData.sale_price || productData.regular_price,
+        items: [
+          {
+            item_id: productData._id,
+            item_name: productData.name,
+            price: productData.sale_price || productData.regular_price,
+            quantity: productData.quantity,
+            size: productData.selectedSize,
+          },
+        ],
       }),
     }).catch((err) => console.error("Server tracking error:", err));
 
@@ -140,8 +146,9 @@ export default function ProductDetails({ product }) {
 
   // ---------------- Order Now ----------------
   const handleOrderNow = () => {
-    handleAddToCart(); // already pushes add_to_cart
+    handleAddToCart(); // Already pushes add_to_cart
 
+    // Additional client-side DataLayer for order_now_click
     if (typeof window !== "undefined") {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
@@ -164,19 +171,23 @@ export default function ProductDetails({ product }) {
       });
     }
 
+    // Server-side tracking
     fetch("/api/track-event", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        event: "order_now_click",
-        ip: "USER_IP_HERE",
-        ua: navigator.userAgent,
-        custom_data: {
-          product_id: product._id,
-          product_name: product.name,
-          price: product.sale_price || product.regular_price,
-          quantity,
-        },
+        event_name: "OrderNowClick",
+        currency: "BDT",
+        value: product.sale_price || product.regular_price,
+        items: [
+          {
+            item_id: product._id,
+            item_name: product.name,
+            price: product.sale_price || product.regular_price,
+            quantity,
+            size: product.sizes?.[0] || "N/A",
+          },
+        ],
       }),
     }).catch((err) => console.error("Server tracking error:", err));
 

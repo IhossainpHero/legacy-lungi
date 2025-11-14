@@ -31,31 +31,43 @@ export default function ShopPageClient({ products }) {
   const [activePriceRange, setActivePriceRange] = useState(PRICE_RANGES[0]);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // ✅ Track shop page view on mount
+  // ✅ Track Shop Page View
   useEffect(() => {
     if (typeof window !== "undefined") {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
         event: "shop_page_view",
+        page_title: "Shop Page",
         timestamp: new Date().toISOString(),
+      });
+
+      // Optional: Facebook CAPI call
+      fetch("/api/track-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event_name: "PageView",
+          event_id: `shop-${Date.now()}`,
+          custom_data: { page_title: "Shop Page", page_path: "/shop" },
+          user_data: { client_user_agent: navigator.userAgent || null },
+        }),
       });
     }
   }, []);
 
-  // ✅ Track category filter change
+  // ✅ Track Category Filter Change
   useEffect(() => {
     if (typeof window !== "undefined" && activeCategory.value !== "all") {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
-        event: "filter_change",
-        filter_type: "category",
+        event: "filter_change_category",
         filter_value: activeCategory.label,
         timestamp: new Date().toISOString(),
       });
     }
   }, [activeCategory]);
 
-  // ✅ Track price range filter change
+  // ✅ Track Price Range Filter Change
   useEffect(() => {
     if (
       typeof window !== "undefined" &&
@@ -63,15 +75,14 @@ export default function ShopPageClient({ products }) {
     ) {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
-        event: "filter_change",
-        filter_type: "price_range",
+        event: "filter_change_price",
         filter_value: activePriceRange.label,
         timestamp: new Date().toISOString(),
       });
     }
   }, [activePriceRange]);
 
-  // ✅ Track search query change
+  // ✅ Track Search Query Change with debounce
   useEffect(() => {
     if (typeof window !== "undefined" && searchQuery.trim() !== "") {
       const timeout = setTimeout(() => {
@@ -81,7 +92,7 @@ export default function ShopPageClient({ products }) {
           search_term: searchQuery,
           timestamp: new Date().toISOString(),
         });
-      }, 500); // debounce 500ms
+      }, 500);
       return () => clearTimeout(timeout);
     }
   }, [searchQuery]);
@@ -105,7 +116,7 @@ export default function ShopPageClient({ products }) {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      {/* 🔍 Search Header */}
+      {/* Search Header */}
       <header className="sticky mt-12 top-0 z-10 bg-white shadow-md p-3">
         <div className="relative">
           <input
@@ -118,7 +129,7 @@ export default function ShopPageClient({ products }) {
         </div>
       </header>
 
-      {/* 🛍️ Main Content */}
+      {/* Main Content */}
       <main className="flex-grow p-4 pb-4">
         <div className="text-sm text-gray-500 mb-3">
           <Link href="/" className="hover:text-blue-600">
@@ -130,7 +141,7 @@ export default function ShopPageClient({ products }) {
           </span>
         </div>
 
-        {/* 🔽 Filters */}
+        {/* Filters */}
         <div className="bg-white p-4 rounded-xl shadow-lg border border-gray-200 mb-6 grid grid-cols-2 gap-4">
           <DropdownFilter
             title="ক্যাটাগরি"
@@ -146,7 +157,7 @@ export default function ShopPageClient({ products }) {
           />
         </div>
 
-        {/* 🧩 Product Grid */}
+        {/* Product Grid */}
         {filteredProducts.length === 0 ? (
           <p className="text-center text-gray-500 py-10">
             কোন প্রোডাক্ট পাওয়া যায়নি 😞
