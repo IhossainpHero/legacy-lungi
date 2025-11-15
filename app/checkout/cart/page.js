@@ -44,7 +44,7 @@ export default function CartPage() {
     if (typeof window !== "undefined") {
       window.dataLayer = window.dataLayer || [];
 
-      // ✅ InitiateCheckout event for GTM & Facebook
+      // ✅ Client-side InitiateCheckout event
       window.dataLayer.push({
         event: "InitiateCheckout",
         ecommerce: {
@@ -62,6 +62,40 @@ export default function CartPage() {
         },
         timestamp: new Date().toISOString(),
       });
+
+      // ✅ Server-side tracking (CAPI)
+      const fbp =
+        document.cookie
+          .split("; ")
+          .find((c) => c.startsWith("_fbp="))
+          ?.split("=")[1] || null;
+      const fbc =
+        document.cookie
+          .split("; ")
+          .find((c) => c.startsWith("_fbc="))
+          ?.split("=")[1] || null;
+      const external_id = "USER_SESSION_ID_OR_HASH"; // Optional: user_id বা session id
+
+      fetch("/api/track-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event_name: "InitiateCheckout",
+          currency: "BDT",
+          value: total,
+          items: cartItems.map((item) => ({
+            item_id: item._id,
+            item_name: item.name,
+            price: item.sale_price,
+            quantity: item.quantity,
+            size: item.selectedSize || "N/A",
+          })),
+          fbp,
+          fbc,
+          external_id,
+          event_id: `initcheckout-${Date.now()}`, // deduplication
+        }),
+      }).catch((err) => console.error("Server tracking error:", err));
     }
 
     router.push("/checkout");

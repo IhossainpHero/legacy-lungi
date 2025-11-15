@@ -89,6 +89,17 @@ export default function ProductCard({
           ],
         },
       });
+      // Read _fbp cookie from browser
+      const fbp = document.cookie
+        .split("; ")
+        .find((c) => c.startsWith("_fbp="))
+        ?.split("=")[1];
+
+      // Read _fbc cookie (optional)
+      const fbc = document.cookie
+        .split("; ")
+        .find((c) => c.startsWith("_fbc="))
+        ?.split("=")[1];
 
       // Server-side API
       fetch("/api/track-event", {
@@ -107,6 +118,10 @@ export default function ProductCard({
               quantity: 1,
             },
           ],
+          // NEW IMPORTANT FIELDS
+          fbp,
+          fbc,
+          external_id: _id, // or cart/session ID
         }),
       });
     }

@@ -5,7 +5,6 @@ export async function POST(req) {
   try {
     const data = await req.json();
 
-    // ✅ Validate frontend payload (items optional)
     if (!data.event_name) {
       return NextResponse.json(
         { success: false, error: "Event name missing" },
@@ -13,7 +12,7 @@ export async function POST(req) {
       );
     }
 
-    // Get client IP & User Agent
+    // Get IP & User Agent (আপনার আগের মতোই)
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0] ||
       req.headers.get("x-real-ip") ||
@@ -33,18 +32,29 @@ export async function POST(req) {
       );
     }
 
-    // Prepare custom_data
+    // Prepare custom_data (unchanged)
     const custom_data = {
       currency: data.currency || "BDT",
       value: Number(data.value) || 0,
-      contents: (data.contents || []).map((p) => ({
-        id: String(p.id),
+      contents: (data.items || []).map((p) => ({
+        id: String(p.item_id),
         quantity: Number(p.quantity) || 1,
-        item_price: Number(p.item_price) || 0,
+        item_price: Number(p.price) || 0,
       })),
       page_title: data.page_title || undefined,
       page_path: data.page_path || undefined,
       transaction_id: data.transaction_id || undefined,
+    };
+
+    // NEW: user_data optimized WITHOUT email
+    const user_data = {
+      client_ip_address: ip,
+      client_user_agent: ua,
+      fbp: data.fbp || undefined,
+      fbc: data.fbc || undefined,
+
+      // external_id দিলে Match Quality বাড়ে (hash লাগবে না)
+      external_id: data.external_id ? String(data.external_id) : undefined,
     };
 
     // Call Facebook Conversion API
@@ -60,11 +70,15 @@ export async function POST(req) {
               event_time: data.event_time || Math.floor(Date.now() / 1000),
               action_source: data.action_source || "website",
               event_source_url: data.url || undefined,
-              user_data: {
-                client_ip_address: ip,
-                client_user_agent: ua,
-              },
+
+              // Updated user_data
+              user_data,
+
+              // আপনার custom data আগের মতোই
               custom_data,
+
+              // Deduplication support
+              event_id: data.event_id || undefined,
             },
           ],
           test_event_code: data.test_code || undefined,

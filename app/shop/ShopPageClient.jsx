@@ -6,6 +6,27 @@ import ProductCard from "@/app/components/Product/ProductCard";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+// --- Cookie Helper ---
+function getCookie(name) {
+  if (typeof document === "undefined") return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+  return null;
+}
+
+// --- Generate _fbc from fbclid ---
+function generateFbc() {
+  if (typeof window === "undefined") return null;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const fbclid = urlParams.get("fbclid");
+
+  if (!fbclid) return null;
+
+  return `fb.1.${Date.now()}.${fbclid}`;
+}
+
 // --- Filters ---
 const CATEGORIES = [
   { label: "সকল ক্যাটাগরি", value: "all" },
@@ -34,6 +55,17 @@ export default function ShopPageClient({ products }) {
   // ✅ Track Shop Page View
   useEffect(() => {
     if (typeof window !== "undefined") {
+      // ---- Read Cookies ----
+      const fbp = getCookie("_fbp") || null;
+      let fbc = getCookie("_fbc") || null;
+
+      // If no cookie exists but fbclid exists → generate new fbc
+      if (!fbc) {
+        const generated = generateFbc();
+        if (generated) fbc = generated;
+      }
+
+      // ---- Push to DataLayer ----
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
         event: "shop_page_view",
@@ -41,15 +73,23 @@ export default function ShopPageClient({ products }) {
         timestamp: new Date().toISOString(),
       });
 
-      // Optional: Facebook CAPI call
+      // ---- Send to Facebook CAPI ----
       fetch("/api/track-event", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           event_name: "PageView",
           event_id: `shop-${Date.now()}`,
-          custom_data: { page_title: "Shop Page", page_path: "/shop" },
-          user_data: { client_user_agent: navigator.userAgent || null },
+          custom_data: {
+            page_title: "Shop Page",
+            page_path: "/shop",
+          },
+          user_data: {
+            client_user_agent: navigator.userAgent || null,
+            fbp: fbp,
+            fbc: fbc,
+            external_id: null, // যদি user logged-in থাকে → hashed ID পাঠাতে হবে
+          },
         }),
       });
     }
@@ -82,7 +122,7 @@ export default function ShopPageClient({ products }) {
     }
   }, [activePriceRange]);
 
-  // ✅ Track Search Query Change with debounce
+  // ✅ Track Search Query Change (Debounced)
   useEffect(() => {
     if (typeof window !== "undefined" && searchQuery.trim() !== "") {
       const timeout = setTimeout(() => {
@@ -93,6 +133,7 @@ export default function ShopPageClient({ products }) {
           timestamp: new Date().toISOString(),
         });
       }, 500);
+
       return () => clearTimeout(timeout);
     }
   }, [searchQuery]);

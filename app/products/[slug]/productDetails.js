@@ -94,6 +94,25 @@ export default function ProductDetails({ product }) {
       quantity,
     };
 
+    // 0️⃣ Get fbp/fbc/external_id for match quality
+    const fbp =
+      typeof window !== "undefined"
+        ? document.cookie
+            .split("; ")
+            .find((c) => c.startsWith("_fbp="))
+            ?.split("=")[1]
+        : undefined;
+
+    const fbc =
+      typeof window !== "undefined"
+        ? document.cookie
+            .split("; ")
+            .find((c) => c.startsWith("_fbc="))
+            ?.split("=")[1]
+        : undefined;
+
+    const external_id = product._id; // Optional, can be session ID or user ID
+
     // 1️⃣ Local Cart
     addToCart(productData);
 
@@ -120,12 +139,12 @@ export default function ProductDetails({ product }) {
       });
     }
 
-    // 3️⃣ Server-side tracking (CAPI)
+    // 3️⃣ Server-side tracking (CAPI) with fbp/fbc/external_id and deduplication
     fetch("/api/track-event", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        event_name: "add_to_cart", // ✅ must match route.js
+        event_name: "add_to_cart",
         currency: "BDT",
         value: productData.sale_price || productData.regular_price,
         items: [
@@ -137,6 +156,10 @@ export default function ProductDetails({ product }) {
             size: productData.selectedSize,
           },
         ],
+        fbp,
+        fbc,
+        external_id,
+        event_id: `addtocart-${Date.now()}`, // deduplication
       }),
     }).catch((err) => console.error("Server tracking error:", err));
 
@@ -147,6 +170,25 @@ export default function ProductDetails({ product }) {
   // ---------------- Order Now ----------------
   const handleOrderNow = () => {
     handleAddToCart(); // Already pushes add_to_cart
+
+    // 0️⃣ Get fbp/fbc/external_id for match quality
+    const fbp =
+      typeof window !== "undefined"
+        ? document.cookie
+            .split("; ")
+            .find((c) => c.startsWith("_fbp="))
+            ?.split("=")[1]
+        : undefined;
+
+    const fbc =
+      typeof window !== "undefined"
+        ? document.cookie
+            .split("; ")
+            .find((c) => c.startsWith("_fbc="))
+            ?.split("=")[1]
+        : undefined;
+
+    const external_id = product._id; // Optional, can be session ID or user ID
 
     // Additional client-side DataLayer for order_now_click
     if (typeof window !== "undefined") {
@@ -171,7 +213,7 @@ export default function ProductDetails({ product }) {
       });
     }
 
-    // Server-side tracking
+    // Server-side tracking (CAPI) with fbp/fbc/external_id and deduplication
     fetch("/api/track-event", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -188,8 +230,28 @@ export default function ProductDetails({ product }) {
             size: product.sizes?.[0] || "N/A",
           },
         ],
+        // ✅ Match quality fields
+        fbp:
+          typeof window !== "undefined"
+            ? document.cookie
+                .split("; ")
+                .find((c) => c.startsWith("_fbp="))
+                ?.split("=")[1]
+            : undefined,
+        fbc:
+          typeof window !== "undefined"
+            ? document.cookie
+                .split("; ")
+                .find((c) => c.startsWith("_fbc="))
+                ?.split("=")[1]
+            : undefined,
+        external_id: product._id, // Optional, can be session ID or user ID
+        event_id: `ordernow-${Date.now()}`, // deduplication
       }),
-    }).catch((err) => console.error("Server tracking error:", err));
+    })
+      .then((res) => res.json())
+      .then((data) => console.log("OrderNow server tracking:", data))
+      .catch((err) => console.error("Server tracking error:", err));
 
     router.push("/checkout");
   };

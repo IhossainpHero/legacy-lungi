@@ -48,20 +48,19 @@ export default function CheckoutPage() {
         timestamp: new Date().toISOString(),
       });
 
-      const pageViewId = `pageview-${Date.now()}`;
-
+      // Server-side tracking
       fetch("/api/track-event", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           event_name: "PageView",
-          event_id: pageViewId,
+          event_id: eventId,
           event_time: Math.floor(Date.now() / 1000),
           action_source: "website",
           page_title: "Checkout Page",
           page_path: "/checkout",
         }),
-      });
+      }).catch((err) => console.error("PageView tracking error:", err));
     }
   }, []);
 
@@ -92,9 +91,22 @@ export default function CheckoutPage() {
       status: "pending",
     };
 
-    const checkoutEventId = `checkout-${Date.now()}`;
+    const checkoutEventId = `initcheckout-${Date.now()}`;
 
-    // 1️⃣ Checkout Initiate → DataLayer + server
+    // fbp, fbc, external_id for server-side tracking
+    const fbp =
+      document.cookie
+        .split("; ")
+        .find((c) => c.startsWith("_fbp="))
+        ?.split("=")[1] || null;
+    const fbc =
+      document.cookie
+        .split("; ")
+        .find((c) => c.startsWith("_fbc="))
+        ?.split("=")[1] || null;
+    const external_id = "USER_SESSION_OR_HASH"; // Optional
+
+    // 1️⃣ InitiateCheckout → DataLayer + server
     if (typeof window !== "undefined") {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
@@ -107,6 +119,7 @@ export default function CheckoutPage() {
             item_name: p.name,
             price: p.sale_price,
             quantity: p.quantity,
+            size: p.selectedSize || "N/A",
           })),
         },
         event_id: checkoutEventId,
@@ -128,8 +141,11 @@ export default function CheckoutPage() {
             quantity: Number(p.quantity),
             item_price: Number(p.sale_price),
           })),
+          fbp,
+          fbc,
+          external_id,
         }),
-      });
+      }).catch((err) => console.error("InitiateCheckout tracking error:", err));
     }
 
     try {
@@ -173,6 +189,7 @@ export default function CheckoutPage() {
               item_name: p.name,
               price: p.sale_price,
               quantity: p.quantity,
+              size: p.selectedSize || "N/A",
             })),
           },
           event_id: purchaseEventId,
@@ -195,8 +212,11 @@ export default function CheckoutPage() {
               quantity: Number(p.quantity),
               item_price: Number(p.sale_price),
             })),
+            fbp,
+            fbc,
+            external_id,
           }),
-        });
+        }).catch((err) => console.error("Purchase tracking error:", err));
       }
 
       // 5️⃣ Clear cart & save order info
