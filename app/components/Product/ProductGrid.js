@@ -28,7 +28,10 @@ export default async function ProductGrid() {
     }
 
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 sm:gap-x-4 md:gap-x-5 gap-y-5 px-2 sm:px-3 md:px-4">
+      <div
+        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-1 sm:gap-x-3 md:gap-x-4  lg:gap-x-4 gap-y-3
+ px-2 sm:px-3 md:px-4"
+      >
         {products.map((p) => (
           <ProductCard
             key={p._id}

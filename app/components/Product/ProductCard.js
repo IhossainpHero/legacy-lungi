@@ -22,10 +22,36 @@ export default function ProductCard({
   const mainImage = image || "/placeholder.png";
   const isSoldOut = stock_status.toLowerCase() === "sold out";
 
+  // 1️⃣ Card Click → View Item / ViewContent
+  const handleCardClick = () => {
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "view_item", // GA4
+        // FB Pixel equivalent: event: "ViewContent"
+        ecommerce: {
+          currency: "BDT",
+          value: sale_price || regular_price,
+          items: [
+            {
+              item_id: _id,
+              item_name: name,
+              price: sale_price || regular_price,
+              item_url: `/products/${slug}`,
+              item_image: image,
+              size: sizes[0] || "Free Size",
+            },
+          ],
+        },
+      });
+    }
+  };
+
+  // 2️⃣ Add to Cart Click
   const handleAddToCart = () => {
     if (isSoldOut) return;
 
-    // 1️⃣ Add to Cart (Local Cart)
+    // Local Cart
     addToCart({
       _id,
       name,
@@ -38,11 +64,10 @@ export default function ProductCard({
       selectedSize: sizes[0] || undefined,
     });
 
-    // 2️⃣ Push Add to Cart event → DataLayer (Pixel + GTM)
+    // Push Add to Cart event → DataLayer
     if (typeof window !== "undefined") {
       const eventId = `addtocart-${Date.now()}`;
       window.dataLayer = window.dataLayer || [];
-
       window.dataLayer.push({
         event: "add_to_cart",
         event_id: eventId,
@@ -65,7 +90,7 @@ export default function ProductCard({
         },
       });
 
-      // 3️⃣ Send to server-side (CAPI)
+      // Server-side API
       fetch("/api/track-event", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -91,12 +116,24 @@ export default function ProductCard({
   };
 
   return (
-    <div className="relative border rounded-2xl bg-white shadow-md hover:shadow-lg overflow-hidden flex flex-col transition-transform hover:scale-105 w-[100%] sm:w-[85%] md:w-full max-w-[320px] mx-auto">
+    <div
+      className="relative border rounded-2xl bg-white shadow-md hover:shadow-lg overflow-hidden flex flex-col transition-transform hover:scale-105 
+w-full max-w-[180px] sm:max-w-[200px] md:max-w-[260px] lg:max-w-[300px]
+
+max-w-none mx-auto"
+    >
       {/* Image */}
       <div className="p-1 pb-0">
         <Link
           href={`/products/${slug}`}
-          className="relative w-full h-48 rounded-xl overflow-hidden block"
+          className="
+      relative w-full 
+      aspect-[3/4]        /* 📱 Mobile small */
+      md:aspect-[4/5]     /* 🖥️ Tablet medium */
+      lg:aspect-[5/6]     /* 💻 Desktop bigger */
+      rounded-xl overflow-hidden block
+    "
+          onClick={handleCardClick}
         >
           <Image
             src={mainImage}
@@ -106,7 +143,6 @@ export default function ProductCard({
             className="object-cover w-full h-full rounded-xl"
           />
 
-          {/* Discount Badge */}
           {discount && !isSoldOut && (
             <span className="absolute top-2 left-2 bg-green-700 text-white text-xs font-bold px-2 py-1 rounded-lg shadow-md">
               -{discount}%
@@ -117,7 +153,7 @@ export default function ProductCard({
 
       {/* Info */}
       <div className="p-3 flex flex-col flex-1 relative">
-        <Link href={`/products/${slug}`}>
+        <Link href={`/products/${slug}`} onClick={handleCardClick}>
           <h3 className="font-medium text-gray-800 text-sm sm:text-[15px] line-clamp-1 hover:text-blue-600">
             {name}
           </h3>

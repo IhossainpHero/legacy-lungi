@@ -98,7 +98,7 @@ export default function CheckoutPage() {
     if (typeof window !== "undefined") {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
-        event: "checkout_initiate",
+        event: "begin_checkout",
         ecommerce: {
           currency: "BDT",
           value: total,
