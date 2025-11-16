@@ -10,17 +10,21 @@ import MobileHeader from "./components/Header/MobileHeader";
 import { CartProvider } from "./context/CartContext";
 
 import TrackingScripts from "./TrackingScripts";
+import FloatingChat from "./components/FloatingChat";
 
 export const metadata = {
-  title: "My Lungi Shop",
+  title: "legacy-lungi",
   description: "Buy premium handloom lungis online from Enayetpur.",
+  icons: {
+    // ✅ সঠিক পাথ: /public/images/ থেকে শুরু না করে /images/ থেকে শুরু হবে
+    icon: "/images/logoico.ico",
+  },
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="bg-gray-50 text-gray-900">
-        {/* ✅ All tracking scripts safely executed in client */}
         <TrackingScripts />
 
         <CartProvider>
@@ -42,6 +46,9 @@ export default function RootLayout({ children }) {
             {children}
           </main>
 
+          {/* Floating Chat */}
+          <FloatingChat />
+
           {/* Mobile Bottom Navbar */}
           <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t">
             <ClientOnly>
@@ -52,7 +59,6 @@ export default function RootLayout({ children }) {
           {/* Footer */}
           <Footer />
 
-          {/* GTM custom event initializer */}
           <ClientOnly>
             <DataLayerInit />
           </ClientOnly>

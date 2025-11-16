@@ -9,7 +9,7 @@ export default function Home() {
       <Hero />
 
       {/* 🔹 Category Slider */}
-      <section className="w-full px-4 py-6">
+    <section className="w-full px-4 py-6">
         <CategorySliderServer />
       </section>
 

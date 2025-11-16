@@ -158,7 +158,7 @@ export default function ShopPageClient({ products }) {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       {/* Search Header */}
-      <header className="sticky mt-12 top-0 z-10 bg-white shadow-md p-3">
+      <header className="sticky top-[80px] z-40 bg-white shadow-md p-3">
         <div className="relative">
           <input
             type="text"
@@ -171,8 +171,8 @@ export default function ShopPageClient({ products }) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-grow p-4 pb-4">
-        <div className="text-sm text-gray-500 mb-3">
+      <main className="flex-grow lg:mt-19 p-4 pb-4">
+        <div className="sticky top-[140px] z-30 bg-gray-50 text-sm text-gray-500 mb-3 mt-3 py-2">
           <Link href="/" className="hover:text-blue-600">
             Home
           </Link>{" "}
@@ -183,7 +183,7 @@ export default function ShopPageClient({ products }) {
         </div>
 
         {/* Filters */}
-        <div className="bg-white p-4 rounded-xl shadow-lg border border-gray-200 mb-6 grid grid-cols-2 gap-4">
+        <div className="  sticky top-[140px] z-30  bg-white p-4 rounded-xl shadow-lg border border-gray-200 mb-6 grid grid-cols-2 gap-4">
           <DropdownFilter
             title="ক্যাটাগরি"
             options={CATEGORIES}
@@ -204,7 +204,7 @@ export default function ShopPageClient({ products }) {
             কোন প্রোডাক্ট পাওয়া যায়নি 😞
           </p>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {filteredProducts.map((product) => (
               <ProductCard
                 key={product._id}

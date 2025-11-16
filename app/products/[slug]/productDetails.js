@@ -53,6 +53,22 @@ export default function ProductDetails({ product }) {
       }
     }
   };
+  // ---------------- Lightbox Back Close ----------------
+  useEffect(() => {
+    if (lightboxOpen) {
+      window.history.pushState({ lightbox: true }, "");
+
+      const handlePopState = () => {
+        setLightboxOpen(false);
+      };
+
+      window.addEventListener("popstate", handlePopState);
+
+      return () => {
+        window.removeEventListener("popstate", handlePopState);
+      };
+    }
+  }, [lightboxOpen]);
 
   const prevImage = () =>
     setMainIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));

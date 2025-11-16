@@ -9,7 +9,7 @@ export default function DesktopNavbar() {
   const pathname = usePathname();
 
   return (
-    <header className="bg-[#063238] hidden md:flex justify-between items-center text-white shadow-md px-10 py-5 sticky top-0 z-50">
+    <header className="bg-[#063238] hidden md:flex justify-between items-center text-white shadow-md px-10 py-5 fixed top-0 left-0 w-full z-50">
       {/* Left Section: Logo */}
       <div className="flex items-center space-x-3">
         {/* <Image
@@ -71,7 +71,7 @@ export default function DesktopNavbar() {
           <Phone size={20} className="text-sky-400" />
           <div className="text-sm leading-tight">
             <p className="text-xs text-gray-300">Call us now</p>
-            <p className="font-semibold text-white">01534648375</p>
+            <p className="font-semibold text-white">01742801735</p>
           </div>
         </a>
 

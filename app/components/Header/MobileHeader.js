@@ -138,36 +138,36 @@ export default function MobileHeader() {
                   Shop
                 </Link>
               </li>
-              <li className="px-6 py-3 hover:bg-white/10 transition">
+              {/* <li className="px-6 py-3 hover:bg-white/10 transition">
                 <Link href="/account" onClick={() => setMenuOpen(false)}>
                   My Account
                 </Link>
-              </li>
-              <li className="px-6 py-3 hover:bg-white/10 transition">
+              </li> */}
+              {/* <li className="px-6 py-3 hover:bg-white/10 transition">
                 <Link href="/track-order" onClick={() => setMenuOpen(false)}>
                   Track Your Order
                 </Link>
-              </li>
-              <li className="px-6 py-3 hover:bg-white/10 transition">
+              </li> */}
+              {/* <li className="px-6 py-3 hover:bg-white/10 transition">
                 <Link href="/faqs" onClick={() => setMenuOpen(false)}>
                   FAQs
                 </Link>
-              </li>
+              </li> */}
               <li className="px-6 py-3 hover:bg-white/10 transition">
                 <Link href="/contact" onClick={() => setMenuOpen(false)}>
                   Contact Us
                 </Link>
               </li>
-              <li className="px-6 py-3 hover:bg-white/10 transition">
+              {/* <li className="px-6 py-3 hover:bg-white/10 transition">
                 <Link href="/wishlist" onClick={() => setMenuOpen(false)}>
                   ❤️ Wishlist
                 </Link>
-              </li>
-              <li className="px-6 py-3 hover:bg-white/10 transition">
+              </li> */}
+              {/* <li className="px-6 py-3 hover:bg-white/10 transition">
                 <Link href="/my-account" onClick={() => setMenuOpen(false)}>
                   👤 My Account
                 </Link>
-              </li>
+              </li> */}
             </ul>
           )}
         </div>
