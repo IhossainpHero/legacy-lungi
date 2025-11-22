@@ -8,10 +8,10 @@ export default function FloatingChat() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="fixed bottom-24 right-4 z-50 flex flex-col items-end">
+    <div className="fixed bottom-24 left-4 z-50 flex flex-col items-start">
       {/* Floating Buttons */}
       <div
-        className={`flex flex-col items-end transition-all duration-300 ${
+        className={`flex flex-col items-start transition-all duration-300 ${
           open
             ? "opacity-100 translate-y-0"
             : "opacity-0 translate-y-5 pointer-events-none"
@@ -19,15 +19,14 @@ export default function FloatingChat() {
       >
         {/* Messenger */}
         <a
-          href="https://m.me/legacylungi
-"
+          href="https://m.me/legacylungi"
           target="_blank"
           className="w-12 h-12 mb-2 bg-blue-500 rounded-full flex items-center justify-center shadow-lg"
         >
           <FaFacebookMessenger className="text-white" />
         </a>
-        {/* WhatsApp */}
 
+        {/* WhatsApp */}
         <a
           href="https://wa.me/01742801735"
           target="_blank"
@@ -35,6 +34,7 @@ export default function FloatingChat() {
         >
           <FaWhatsapp className="text-white" />
         </a>
+
         {/* Call */}
         <a
           href="tel:01742801735"

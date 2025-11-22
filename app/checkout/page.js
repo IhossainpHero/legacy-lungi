@@ -1,4 +1,5 @@
 "use client";
+import SHA256 from "crypto-js/sha256";
 
 import { useCart } from "@/app/context/CartContext";
 import Image from "next/image";
@@ -59,6 +60,8 @@ export default function CheckoutPage() {
           action_source: "website",
           page_title: "Checkout Page",
           page_path: "/checkout",
+          event_source_url: window.location.href,
+          client_user_agent: navigator.userAgent,
         }),
       }).catch((err) => console.error("PageView tracking error:", err));
     }
@@ -104,7 +107,11 @@ export default function CheckoutPage() {
         .split("; ")
         .find((c) => c.startsWith("_fbc="))
         ?.split("=")[1] || null;
-    const external_id = "USER_SESSION_OR_HASH"; // Optional
+
+    // Hash external_id (phone number) for better match quality
+    const external_id = form.phone
+      ? SHA256(form.phone.trim()).toString()
+      : null;
 
     // 1️⃣ InitiateCheckout → DataLayer + server
     if (typeof window !== "undefined") {
@@ -126,25 +133,29 @@ export default function CheckoutPage() {
         timestamp: new Date().toISOString(),
       });
 
+      const payload = {
+        event_name: "InitiateCheckout",
+        event_source_url: window.location.href,
+        client_user_agent: navigator.userAgent,
+        event_id: checkoutEventId,
+        event_time: Math.floor(Date.now() / 1000),
+        action_source: "website",
+        currency: "BDT",
+        value: Number(total),
+        contents: cartItems.map((p) => ({
+          id: String(p._id),
+          quantity: Number(p.quantity),
+          item_price: Number(p.sale_price),
+        })),
+        external_id,
+      };
+      if (fbp) payload.fbp = fbp;
+      if (fbc) payload.fbc = fbc;
+
       fetch("/api/track-event", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event_name: "InitiateCheckout",
-          event_id: checkoutEventId,
-          event_time: Math.floor(Date.now() / 1000),
-          action_source: "website",
-          currency: "BDT",
-          value: Number(total),
-          contents: cartItems.map((p) => ({
-            id: String(p._id),
-            quantity: Number(p.quantity),
-            item_price: Number(p.sale_price),
-          })),
-          fbp,
-          fbc,
-          external_id,
-        }),
+        body: JSON.stringify(payload),
       }).catch((err) => console.error("InitiateCheckout tracking error:", err));
     }
 
@@ -196,26 +207,30 @@ export default function CheckoutPage() {
           timestamp: new Date().toISOString(),
         });
 
+        const purchasePayload = {
+          event_name: "Purchase",
+          event_source_url: window.location.href,
+          client_user_agent: navigator.userAgent,
+          event_id: purchaseEventId,
+          event_time: Math.floor(Date.now() / 1000),
+          action_source: "website",
+          currency: "BDT",
+          value: Number(total),
+          transaction_id: orderResult.orderId,
+          contents: cartItems.map((p) => ({
+            id: String(p._id),
+            quantity: Number(p.quantity),
+            item_price: Number(p.sale_price),
+          })),
+          external_id,
+        };
+        if (fbp) purchasePayload.fbp = fbp;
+        if (fbc) purchasePayload.fbc = fbc;
+
         fetch("/api/track-event", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            event_name: "Purchase",
-            event_id: purchaseEventId,
-            event_time: Math.floor(Date.now() / 1000),
-            action_source: "website",
-            currency: "BDT",
-            value: Number(total),
-            transaction_id: orderResult.orderId,
-            contents: cartItems.map((p) => ({
-              id: String(p._id),
-              quantity: Number(p.quantity),
-              item_price: Number(p.sale_price),
-            })),
-            fbp,
-            fbc,
-            external_id,
-          }),
+          body: JSON.stringify(purchasePayload),
         }).catch((err) => console.error("Purchase tracking error:", err));
       }
 

@@ -128,7 +128,7 @@ export default function ProductDetails({ product }) {
         : undefined;
 
     const external_id = product._id; // Optional, can be session ID or user ID
-
+    const eventId = `addtocart-${Date.now()}`;
     // 1️⃣ Local Cart
     addToCart(productData);
 
@@ -137,6 +137,7 @@ export default function ProductDetails({ product }) {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
         event: "add_to_cart",
+        event_id: eventId,
         ecommerce: {
           items: [
             {
@@ -161,6 +162,7 @@ export default function ProductDetails({ product }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         event_name: "add_to_cart",
+
         currency: "BDT",
         value: productData.sale_price || productData.regular_price,
         items: [
@@ -505,14 +507,14 @@ function ContactSection() {
         আপনার যেকোন প্রয়োজনে আমাদের সাথে যোগাযোগ করুন
       </p>
       <a
-        href="tel:+8801916660952"
+        href="tel:+8801742801735"
         className="flex justify-center items-center gap-2 bg-[#0C2340] text-white py-2 rounded-lg font-semibold hover:bg-[#163d66] transition w-full sm:w-2/3 mx-auto"
       >
-        <FaPhoneAlt /> +880 1916660952
+        <FaPhoneAlt /> +880 1742801735
       </a>
       <p className="text-gray-700">অর্ডার বা তথ্যের জন্য WhatsApp করুন</p>
       <a
-        href="https://wa.me/8801916660952"
+        href="https://wa.me/8801742801735"
         target="_blank"
         rel="noopener noreferrer"
         className="flex justify-center items-center gap-2 bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 transition w-full sm:w-2/3 mx-auto"

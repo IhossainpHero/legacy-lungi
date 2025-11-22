@@ -1,9 +1,25 @@
-// app/api/track-event/route.js (Next.js App Router)
+// app/api/track-event/route.js
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
-    const data = await req.json();
+    // ✅ Safely parse JSON body
+    let data;
+    try {
+      const bodyText = await req.text();
+      if (!bodyText) {
+        return NextResponse.json(
+          { success: false, error: "Empty request body" },
+          { status: 400 }
+        );
+      }
+      data = JSON.parse(bodyText);
+    } catch {
+      return NextResponse.json(
+        { success: false, error: "Invalid JSON body" },
+        { status: 400 }
+      );
+    }
 
     if (!data.event_name) {
       return NextResponse.json(
@@ -12,7 +28,7 @@ export async function POST(req) {
       );
     }
 
-    // Get IP & User Agent (আপনার আগের মতোই)
+    // ✅ Get IP & User Agent
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0] ||
       req.headers.get("x-real-ip") ||
@@ -21,7 +37,7 @@ export async function POST(req) {
 
     const ua = req.headers.get("user-agent") || undefined;
 
-    // Facebook credentials
+    // ✅ Facebook credentials
     const PIXEL_ID = process.env.FB_PIXEL_ID;
     const ACCESS_TOKEN = process.env.FB_ACCESS_TOKEN;
 
@@ -32,7 +48,7 @@ export async function POST(req) {
       );
     }
 
-    // Prepare custom_data (unchanged)
+    // ✅ Prepare custom_data
     const custom_data = {
       currency: data.currency || "BDT",
       value: Number(data.value) || 0,
@@ -46,18 +62,16 @@ export async function POST(req) {
       transaction_id: data.transaction_id || undefined,
     };
 
-    // NEW: user_data optimized WITHOUT email
+    // ✅ Prepare user_data for better match quality
     const user_data = {
       client_ip_address: ip,
       client_user_agent: ua,
       fbp: data.fbp || undefined,
       fbc: data.fbc || undefined,
-
-      // external_id দিলে Match Quality বাড়ে (hash লাগবে না)
       external_id: data.external_id ? String(data.external_id) : undefined,
     };
 
-    // Call Facebook Conversion API
+    // ✅ Call Facebook Conversion API
     const fbResponse = await fetch(
       `https://graph.facebook.com/v18.0/${PIXEL_ID}/events?access_token=${ACCESS_TOKEN}`,
       {
@@ -69,19 +83,13 @@ export async function POST(req) {
               event_name: data.event_name,
               event_time: data.event_time || Math.floor(Date.now() / 1000),
               action_source: data.action_source || "website",
-              event_source_url: data.url || undefined,
-
-              // Updated user_data
+              event_source_url: data.event_source_url || undefined,
               user_data,
-
-              // আপনার custom data আগের মতোই
               custom_data,
-
-              // Deduplication support
               event_id: data.event_id || undefined,
             },
           ],
-          test_event_code: data.test_code || undefined,
+          test_event_code: data.test_event_code || undefined,
         }),
       }
     );

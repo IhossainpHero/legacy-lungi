@@ -1,8 +1,8 @@
 "use client";
 import { useCart } from "@/app/context/CartContext";
-import Image from "next/image";
+import NextImage from "next/image"; // Next.js Image কে alias দিলাম
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function ProductCard({
   _id,
@@ -22,13 +22,25 @@ export default function ProductCard({
   const mainImage = image || "/placeholder.png";
   const isSoldOut = stock_status.toLowerCase() === "sold out";
 
-  // 1️⃣ Card Click → View Item / ViewContent
+  // ---------------- Preload image ----------------
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const img = new window.Image(); // NextImage না, native browser Image
+      img.src = mainImage;
+    }
+  }, [mainImage]);
+
+  // ---------------- Browser + Server-side tracking for ViewItem ----------------
   const handleCardClick = () => {
     if (typeof window !== "undefined") {
+      const eventId = `viewitem-${Date.now()}`;
       window.dataLayer = window.dataLayer || [];
+
+      // Browser-side DataLayer
       window.dataLayer.push({
-        event: "view_item", // GA4
-        // FB Pixel equivalent: event: "ViewContent"
+        event: "view_item",
+        event_id: eventId,
+        timestamp: new Date().toISOString(),
         ecommerce: {
           currency: "BDT",
           value: sale_price || regular_price,
@@ -38,20 +50,54 @@ export default function ProductCard({
               item_name: name,
               price: sale_price || regular_price,
               item_url: `/products/${slug}`,
-              item_image: image,
+              item_image: mainImage,
               size: sizes[0] || "Free Size",
             },
           ],
         },
       });
+
+      // Server-side tracking
+      const fbp = document.cookie
+        .split("; ")
+        .find((c) => c.startsWith("_fbp="))
+        ?.split("=")[1];
+
+      const fbc = document.cookie
+        .split("; ")
+        .find((c) => c.startsWith("_fbc="))
+        ?.split("=")[1];
+
+      fetch("/api/track-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event_name: "ViewItem",
+          event_id: eventId,
+          currency: "BDT",
+          value: sale_price || regular_price,
+          items: [
+            {
+              item_id: _id,
+              item_name: name,
+              price: sale_price || regular_price,
+              size: sizes[0] || "Free Size",
+              quantity: 1,
+            },
+          ],
+          fbp,
+          fbc,
+          external_id: _id,
+        }),
+      }).catch((err) => console.error("Server tracking error:", err));
     }
   };
 
-  // 2️⃣ Add to Cart Click
+  // ---------------- Browser + Server-side tracking for AddToCart ----------------
   const handleAddToCart = () => {
     if (isSoldOut) return;
 
-    // Local Cart
+    // Add to local cart
     addToCart({
       _id,
       name,
@@ -62,12 +108,14 @@ export default function ProductCard({
       description,
       discount,
       selectedSize: sizes[0] || undefined,
+      quantity: 1,
     });
 
-    // Push Add to Cart event → DataLayer
     if (typeof window !== "undefined") {
       const eventId = `addtocart-${Date.now()}`;
       window.dataLayer = window.dataLayer || [];
+
+      // Browser-side DataLayer
       window.dataLayer.push({
         event: "add_to_cart",
         event_id: eventId,
@@ -83,25 +131,24 @@ export default function ProductCard({
               quantity: 1,
               discount: discount || 0,
               item_url: `/products/${slug}`,
-              item_image: image,
+              item_image: mainImage,
               size: sizes[0] || "Free Size",
             },
           ],
         },
       });
-      // Read _fbp cookie from browser
+
+      // Server-side tracking
       const fbp = document.cookie
         .split("; ")
         .find((c) => c.startsWith("_fbp="))
         ?.split("=")[1];
 
-      // Read _fbc cookie (optional)
       const fbc = document.cookie
         .split("; ")
         .find((c) => c.startsWith("_fbc="))
         ?.split("=")[1];
 
-      // Server-side API
       fetch("/api/track-event", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -116,14 +163,14 @@ export default function ProductCard({
               item_name: name,
               price: sale_price || regular_price,
               quantity: 1,
+              size: sizes[0] || "Free Size",
             },
           ],
-          // NEW IMPORTANT FIELDS
           fbp,
           fbc,
-          external_id: _id, // or cart/session ID
+          external_id: _id,
         }),
-      });
+      }).catch((err) => console.error("Server tracking error:", err));
     }
 
     setAdded(true);
@@ -132,32 +179,23 @@ export default function ProductCard({
 
   return (
     <div
-      className="relative border rounded-2xl bg-white shadow-md hover:shadow-lg overflow-hidden flex flex-col transition-transform hover:scale-105 
-w-full max-w-[180px] sm:max-w-[200px] md:max-w-[260px] lg:max-w-[300px]
-
-max-w-none mx-auto"
+      className="relative border rounded-2xl bg-white shadow-md hover:shadow-lg overflow-hidden flex flex-col transition-transform hover:scale-105
+w-full max-w-[180px] sm:max-w-[200px] md:max-w-[260px] lg:max-w-[300px] max-w-none mx-auto"
     >
       {/* Image */}
       <div className="p-1 pb-0">
         <Link
           href={`/products/${slug}`}
-          className="
-      relative w-full 
-      aspect-[3/4]        /* 📱 Mobile small */
-      md:aspect-[4/5]     /* 🖥️ Tablet medium */
-      lg:aspect-[5/6]     /* 💻 Desktop bigger */
-      rounded-xl overflow-hidden block
-    "
+          className="relative w-full aspect-[3/4] md:aspect-[4/5] lg:aspect-[5/6] rounded-xl overflow-hidden block"
           onClick={handleCardClick}
         >
-          <Image
+          <NextImage
             src={mainImage}
             alt={name}
             fill
             unoptimized
             className="object-cover w-full h-full rounded-xl"
           />
-
           {discount && !isSoldOut && (
             <span className="absolute top-2 left-2 bg-green-700 text-white text-xs font-bold px-2 py-1 rounded-lg shadow-md">
               -{discount}%
@@ -185,7 +223,6 @@ max-w-none mx-auto"
           )}
         </div>
 
-        {/* Stock Status */}
         <p
           className={`mt-1 text-sm ${
             isSoldOut ? "text-red-600 font-bold" : "text-gray-800"
@@ -194,7 +231,6 @@ max-w-none mx-auto"
           {stock_status}
         </p>
 
-        {/* Add to Cart Button */}
         <button
           onClick={handleAddToCart}
           disabled={added || isSoldOut}

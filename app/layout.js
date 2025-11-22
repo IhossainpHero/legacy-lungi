@@ -10,6 +10,7 @@ import MobileHeader from "./components/Header/MobileHeader";
 import { CartProvider } from "./context/CartContext";
 
 import TrackingScripts from "./TrackingScripts";
+import BrowserTracking from "./components/BrowserTracking";
 import FloatingChat from "./components/FloatingChat";
 
 export const metadata = {
@@ -25,7 +26,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="bg-gray-50 text-gray-900">
-        <TrackingScripts />
+        <ClientOnly>
+          <TrackingScripts />
+          <BrowserTracking />
+          <FloatingChat />
+        </ClientOnly>
 
         <CartProvider>
           {/* Header */}
@@ -45,9 +50,6 @@ export default function RootLayout({ children }) {
           <main className="min-h-screen pt-16 md:pt-0 pb-16 md:pb-0">
             {children}
           </main>
-
-          {/* Floating Chat */}
-          <FloatingChat />
 
           {/* Mobile Bottom Navbar */}
           <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t">

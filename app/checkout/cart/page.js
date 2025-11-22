@@ -5,6 +5,28 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+// --- Helper: get cookie
+function getCookie(name) {
+  if (typeof document === "undefined") return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+  return null;
+}
+
+// --- Helper: set cookie
+function setCookie(name, value, days = 365) {
+  if (typeof document === "undefined") return;
+  const expires = new Date();
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+}
+
+// --- Helper: generate anonymous session ID
+function generateSessionId() {
+  return "sess-" + Math.random().toString(36).substring(2, 15) + Date.now();
+}
+
 export default function CartPage() {
   const {
     cartItems,
@@ -17,7 +39,7 @@ export default function CartPage() {
 
   const router = useRouter();
 
-  // 🔹 Shipping charge calculation
+  // --- Shipping charge
   const shippingCharge =
     shippingLocation === "inside"
       ? 80
@@ -25,11 +47,22 @@ export default function CartPage() {
       ? 120
       : 0;
 
-  // 🔹 Total calculation
   const total = subtotal + shippingCharge;
 
-  // 🔹 Page view tracking
+  // --- Setup anonymous session ID if not exists
   useEffect(() => {
+    let sessionId = getCookie("session_id");
+    if (!sessionId) {
+      sessionId = generateSessionId();
+      setCookie("session_id", sessionId);
+    }
+  }, []);
+
+  // --- Page view tracking (Browser + Server)
+  useEffect(() => {
+    const sessionId = getCookie("session_id");
+
+    // Browser-side
     if (typeof window !== "undefined") {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
@@ -37,14 +70,44 @@ export default function CartPage() {
         page: { title: "Cart Page", path: "/cart" },
         timestamp: new Date().toISOString(),
       });
+
+      // Server-side
+      const fbp =
+        document.cookie
+          .split("; ")
+          .find((c) => c.startsWith("_fbp="))
+          ?.split("=")[1] || null;
+      const fbc =
+        document.cookie
+          .split("; ")
+          .find((c) => c.startsWith("_fbc="))
+          ?.split("=")[1] || null;
+
+      fetch("/api/track-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event_name: "PageView",
+          event_id: `pageview-${Date.now()}`,
+          page_title: "Cart Page",
+          page_path: "/cart",
+          user_data: {
+            fbp,
+            fbc,
+            external_id: sessionId, // anonymous session
+            client_user_agent: navigator.userAgent || null,
+          },
+        }),
+      }).catch((err) => console.error("Server tracking error:", err));
     }
   }, []);
 
   const handleCheckout = () => {
-    if (typeof window !== "undefined") {
-      window.dataLayer = window.dataLayer || [];
+    const sessionId = getCookie("session_id");
 
-      // ✅ Client-side InitiateCheckout event
+    if (typeof window !== "undefined") {
+      // Browser-side
+      window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
         event: "InitiateCheckout",
         ecommerce: {
@@ -63,7 +126,7 @@ export default function CartPage() {
         timestamp: new Date().toISOString(),
       });
 
-      // ✅ Server-side tracking (CAPI)
+      // Server-side
       const fbp =
         document.cookie
           .split("; ")
@@ -74,13 +137,13 @@ export default function CartPage() {
           .split("; ")
           .find((c) => c.startsWith("_fbc="))
           ?.split("=")[1] || null;
-      const external_id = "USER_SESSION_ID_OR_HASH"; // Optional: user_id বা session id
 
       fetch("/api/track-event", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           event_name: "InitiateCheckout",
+          event_id: `initcheckout-${Date.now()}`,
           currency: "BDT",
           value: total,
           items: cartItems.map((item) => ({
@@ -92,8 +155,7 @@ export default function CartPage() {
           })),
           fbp,
           fbc,
-          external_id,
-          event_id: `initcheckout-${Date.now()}`, // deduplication
+          external_id: sessionId, // anonymous session
         }),
       }).catch((err) => console.error("Server tracking error:", err));
     }
@@ -113,7 +175,7 @@ export default function CartPage() {
         </p>
       ) : (
         <div className="flex flex-col lg:flex-row gap-6 max-w-6xl mx-auto">
-          {/* 🧺 Product List Section */}
+          {/* Product List */}
           <div className="flex-1 flex flex-col gap-6">
             {cartItems.map((item) => (
               <div
@@ -187,7 +249,7 @@ export default function CartPage() {
             ))}
           </div>
 
-          {/* 💳 Cart Totals Section */}
+          {/* Cart Totals */}
           <div className="lg:w-1/3">
             <div className="bg-white p-6 rounded-2xl shadow-md">
               <h2 className="text-lg font-semibold mb-4 text-[#063238]">
