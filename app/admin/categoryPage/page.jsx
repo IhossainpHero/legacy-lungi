@@ -13,6 +13,8 @@ const categories = [
   { name: "জ্যাকার্ড লুঙ্গি", slug: "jacquard-lungi" },
   { name: "এক কালার লুঙ্গি", slug: "one-color" },
   { name: "সাদা এবং অন্যান্য", slug: "white-and-others" },
+  { name: "বাটিক লুঙ্গি", slug: "batik-lungi" },
+  { name: "হ্যান্ডলুম লুঙ্গি", slug: "handloom-lungi" },
 ];
 
 export default function CategoryPage() {

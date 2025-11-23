@@ -37,6 +37,8 @@ const CATEGORIES = [
   { label: "জ্যাকার্ড লুঙ্গি", value: "jacquard-lungi" },
   { label: "এক কালার লুঙ্গি", value: "one-color" },
   { label: "সাদা এবং অন্যান্য", value: "white-and-others" },
+  { label: "বাটিক লুঙ্গি", value: "batik-lungi" },
+  { label: "হ্যান্ডলুম লুঙ্গি", value: "handloom-lungi" },
 ];
 
 const PRICE_RANGES = [

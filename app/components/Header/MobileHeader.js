@@ -23,6 +23,8 @@ export default function MobileHeader() {
     { name: "জ্যাকার্ড লুঙ্গি", slug: "jacquard-lungi" },
     { name: "এক কালার লুঙ্গি", slug: "one-color" },
     { name: "সাদা এবং অন্যান্য", slug: "white-and-others" },
+    { name: "হ্যান্ডলুম লুঙ্গি", slug: "handloom-lungi" },
+    { name: "বাটিক লুঙ্গি", slug: "batik-lungi" },
   ];
 
   if (!mounted) return null;
@@ -39,18 +41,24 @@ export default function MobileHeader() {
           <Menu className="w-6 h-6" />
         </button>
 
-        <div className="text-xl font-bold tracking-wide">Legacy Lungi</div>
+        <Link href="/">
+          <div className="text-xl font-bold tracking-wide cursor-pointer">
+            Legacy Lungi
+          </div>
+        </Link>
         <Link
           href="/checkout/cart"
-          className="relative flex flex-col items-center text-gray-900"
+          className="relative flex flex-col items-center text-gray-700 cursor-pointer"
         >
-          <ShoppingCart size={22} />
+          <ShoppingCart size={22} color="#ffffff" strokeWidth={2} />
+
           {totalQuantity > 0 && (
             <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
               {totalQuantity}
             </span>
           )}
-          <span className="mt-1 text-xs">Cart</span>
+
+          <span className="mt-1 text-xs text-white">Cart</span>
         </Link>
       </div>
 
