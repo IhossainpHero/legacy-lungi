@@ -1,17 +1,22 @@
 import connectDB from "@/lib/mongodb";
 import Category from "@/models/Category";
-import fs from "fs";
-import { writeFile } from "fs/promises";
+import { v2 as cloudinary } from "cloudinary";
 import { NextResponse } from "next/server";
-import path from "path";
+
+// 🔥 Cloudinary config
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function POST(req) {
   try {
     await connectDB();
 
     const formData = await req.formData();
-    const name = formData.get("name"); // বাংলা নাম
-    const slug = formData.get("slug"); // আলাদা slug
+    const name = formData.get("name");
+    const slug = formData.get("slug");
     const file = formData.get("file");
 
     if (!name || !slug || !file) {
@@ -21,42 +26,49 @@ export async function POST(req) {
       );
     }
 
-    // ✅ Upload folder তৈরি করো
-    const uploadDir = path.join(process.cwd(), "public/uploads/categories");
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+    // =============================
+    //  🔥 Image Upload to Cloudinary
+    // =============================
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
-    // ✅ নতুন ফাইল সেভ করো
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const filename = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
-    const filePath = path.join(uploadDir, filename);
-    await writeFile(filePath, buffer);
-    const imageUrl = `/uploads/categories/${filename}`;
+    const uploadResult = await new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          {
+            folder: "categories", // Cloudinary folder
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        )
+        .end(buffer);
+    });
 
-    // ✅ পুরনো category আছে কিনা চেক করো
+    const imageUrl = uploadResult.secure_url;
+
+    // 🔎 আগের category আছে কিনা
     const existingCategory = await Category.findOne({ slug });
 
-    // ✅ Update বা create করো
+    // 👍 Update বা create
     const updatedCategory = await Category.findOneAndUpdate(
       { slug },
       { name, slug, image: imageUrl },
       { new: true, upsert: true }
     );
 
-    // ✅ আগের image থাকলে মুছে ফেলো
+    // =============================
+    //  🔥 পুরনো image delete (Cloudinary)
+    // =============================
     if (
       existingCategory &&
       existingCategory.image &&
       existingCategory.image !== imageUrl
     ) {
-      const oldPath = path.join(
-        process.cwd(),
-        "public",
-        existingCategory.image
-      );
-      if (fs.existsSync(oldPath)) {
-        fs.unlinkSync(oldPath);
-        console.log("🗑️ পুরনো ছবি ডিলিট হয়েছে:", existingCategory.image);
-      }
+      const publicId = existingCategory.image.split("/").pop().split(".")[0];
+
+      await cloudinary.uploader.destroy(`categories/${publicId}`);
     }
 
     return NextResponse.json({
