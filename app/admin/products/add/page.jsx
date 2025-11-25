@@ -9,6 +9,7 @@ import {
 } from "@/app/components/UI/Card";
 import { Input } from "@/app/components/UI/input";
 import { Label } from "@/app/components/UI/label";
+import imageCompression from "browser-image-compression";
 import Image from "next/image";
 import { useState } from "react";
 import { toast } from "react-toastify";
@@ -35,7 +36,7 @@ export default function AddProductPage() {
   const [salePrice, setSalePrice] = useState("");
   const [description, setDescription] = useState("");
   const [discount, setDiscount] = useState("");
-  const [stockStatus, setStockStatus] = useState("In Stock"); // ✅ নতুন ফিল্ড
+  const [stockStatus, setStockStatus] = useState("In Stock");
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -44,7 +45,7 @@ export default function AddProductPage() {
   const [previews, setPreviews] = useState([]);
   const [mainImageIndex, setMainImageIndex] = useState(0);
 
-  // ✅ Image Upload handler
+  // ✅ Image Upload handler with compression
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
@@ -55,8 +56,15 @@ export default function AddProductPage() {
 
     try {
       for (let file of files) {
+        // 🔹 Compress image before uploading
+        const compressedFile = await imageCompression(file, {
+          maxSizeMB: 2, // Target max 2MB
+          maxWidthOrHeight: 1600, // Max resolution
+          useWebWorker: true,
+        });
+
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", compressedFile);
 
         const res = await fetch("/api/upload", {
           method: "POST",
@@ -67,7 +75,7 @@ export default function AddProductPage() {
 
         if (res.ok && data.urls?.length) {
           uploadedUrls.push(...data.urls);
-          localPreviews.push(URL.createObjectURL(file));
+          localPreviews.push(URL.createObjectURL(compressedFile));
         } else {
           toast.error("❌ Some images failed to upload!");
         }
@@ -115,7 +123,7 @@ export default function AddProductPage() {
       main_image: images[mainImageIndex],
       images,
       sizes: sizeArray,
-      stock_status: stockStatus, // ✅ নতুন ফিল্ড পাঠানো হচ্ছে
+      stock_status: stockStatus,
     };
 
     try {
@@ -124,8 +132,6 @@ export default function AddProductPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(productData),
       });
-
-      console.log(productData);
 
       const result = await res.json();
 
@@ -300,7 +306,7 @@ export default function AddProductPage() {
                   />
                 </div>
 
-                {/* 🆕 Stock Status */}
+                {/* Stock Status */}
                 <div className="flex flex-col">
                   <Label>Stock Status</Label>
                   <Input
