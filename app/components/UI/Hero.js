@@ -4,28 +4,40 @@ import Image from "next/image";
 export default function Hero() {
   return (
     <section className="relative w-full overflow-hidden">
-      {/* Responsive height: small devices - 220px, medium - 350px, large - 500px */}
-      <div className="relative w-full h-[220px] sm:h-[350px] md:h-[450px] lg:h-[500px] xl:h-[550px]">
-        <picture className="absolute inset-0 w-full h-full">
-          {/* Desktop Banner */}
-          <source
-            media="(min-width:1024px)"
-            srcSet="/images/banner-desktop.png"
-          />
-          {/* Tablet Banner */}
-          <source
-            media="(min-width:640px)"
-            srcSet="/images/banner-tablet.png"
-          />
-          {/* Mobile Banner */}
-          <Image
-            src="/images/banner-mobile.png"
-            alt="Legacy Lungi Banner"
-            fill
-            className="object-cover w-full h-full"
-            priority
-          />
-        </picture>
+      {/* Small devices: 0 - 639px → Hero3 */}
+      <div className="block sm:hidden relative w-full h-[220px]">
+        <Image
+          src="/images/Hero3.png"
+          alt="Hero3 Banner"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+      </div>
+
+      {/* Medium devices: 640px - 1046px → Hero1 */}
+      <div className="hidden sm:block lg:hidden relative w-full h-[340px] md:h-[450px]">
+        <Image
+          src="/images/Hero3.png"
+          alt="Hero1 Banner"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+      </div>
+
+      {/* Large devices: >1046px → Hero2 */}
+      <div className="hidden lg:block relative w-full h-[520px]">
+        <Image
+          src="/images/Hero1.png"
+          alt="Hero2 Banner"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-[center_20%]"
+        />
       </div>
     </section>
   );
