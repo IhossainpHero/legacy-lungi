@@ -185,12 +185,13 @@ export default function ProductCard({
   return (
     <div
       className="
-        border rounded-xl bg-white shadow 
-        hover:shadow-lg transition-all 
-       w-[170px] sm:w-[200px] md:w-[230px] lg:w-[250px]
-
-        mx-auto p-2 flex flex-col
-      "
+    border rounded-xl hover:shadow-lg transition-all 
+    p-2 
+    /* ❌ w-[167px] এবং m-2 সরানো হয়েছে */
+    /* ✅ w-full ক্লাস নিশ্চিত করবে এটি গ্রিড সেলে সম্পূর্ণ জায়গা নেবে */
+    w-full
+    flex flex-col bg-white overflow-hidden mx-auto
+  "
     >
       {/* Image */}
       <Link
@@ -216,7 +217,9 @@ export default function ProductCard({
       {/* Info */}
       <div className="p-3 flex flex-col flex-1 relative">
         <Link href={`/products/${slug}`}>
-          <h3 className="font-medium text-sm line-clamp-1">{name}</h3>
+          <h3 className="font-medium text-gray-700 text-sm line-clamp-1">
+            {name}
+          </h3>
         </Link>
 
         {/* Stock Status */}
