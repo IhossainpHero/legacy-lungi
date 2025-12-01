@@ -26,7 +26,7 @@ export default function ProductCard({
   const quantity = 1;
   const selectedSize = sizes[0] || "Free Size";
 
-  // ---------------- Preload image ----------------
+  // ---------------- Preload ----------------
   useEffect(() => {
     if (typeof window !== "undefined") {
       const img = new window.Image();
@@ -34,7 +34,7 @@ export default function ProductCard({
     }
   }, [mainImage]);
 
-  // ---------------- AddToCart ----------------
+  // ---------------- Add to Cart ----------------
   const handleAddToCart = () => {
     if (isSoldOut) return;
 
@@ -53,6 +53,7 @@ export default function ProductCard({
 
     if (typeof window !== "undefined") {
       const eventId = `addtocart-${Date.now()}`;
+
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
         event: "add_to_cart",
@@ -107,16 +108,16 @@ export default function ProductCard({
           fbc,
           external_id: _id,
         }),
-      }).catch((err) => console.error("Server tracking error:", err));
+      });
     }
 
     setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
+    setTimeout(() => setAdded(false), 1500);
   };
 
   // ---------------- Order Now ----------------
   const handleOrderNow = () => {
-    handleAddToCart(); // কার্টে যোগ করা
+    handleAddToCart();
 
     const eventId = `ordernow-${Date.now()}`;
     const fbp = document.cookie
@@ -129,7 +130,7 @@ export default function ProductCard({
       .find((c) => c.startsWith("_fbc="))
       ?.split("=")[1];
 
-    // ---------------- Browser DataLayer ----------------
+    // DataLayer push
     if (typeof window !== "undefined") {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
@@ -155,7 +156,6 @@ export default function ProductCard({
       });
     }
 
-    // ---------------- Server-side tracking ----------------
     fetch("/api/track-event", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -177,85 +177,95 @@ export default function ProductCard({
         fbc,
         external_id: _id,
       }),
-    })
-      .then((res) => res.json())
-      .then((data) => console.log("OrderNow server tracking:", data))
-      .catch((err) => console.error("Server tracking error:", err));
+    });
 
-    router.push("/checkout"); // Checkout redirect
+    router.push("/checkout");
   };
 
   return (
     <div
-      className="relative border rounded-2xl bg-white shadow-md hover:shadow-lg overflow-hidden flex flex-col transition-transform hover:scale-105
-    w-full max-w-[180px] sm:max-w-[200px] md:max-w-[260px] lg:max-w-[300px] max-w-none mx-auto"
+      className="
+        border rounded-xl bg-white shadow 
+        hover:shadow-lg transition-all 
+       w-[170px] sm:w-[200px] md:w-[230px] lg:w-[250px]
+
+        mx-auto p-2 flex flex-col
+      "
     >
       {/* Image */}
-      <div className="p-1 pb-0">
-        <Link
-          href={`/products/${slug}`}
-          className="relative w-full aspect-[3/4] md:aspect-[4/5] lg:aspect-[5/6] rounded-xl overflow-hidden block"
-        >
-          <NextImage
-            src={mainImage}
-            alt={name}
-            fill
-            unoptimized
-            className="object-cover w-full h-full rounded-xl"
-          />
-          {discount && !isSoldOut && (
-            <span className="absolute top-2 left-2 bg-green-700 text-white text-xs font-bold px-2 py-1 rounded-lg shadow-md">
-              -{discount}%
-            </span>
-          )}
-        </Link>
-      </div>
+      <Link
+        href={`/products/${slug}`}
+        className="relative w-full h-48 sm:h-56 md:h-64 rounded-lg overflow-hidden"
+      >
+        <NextImage
+          src={mainImage}
+          alt={name}
+          fill
+          unoptimized
+          className="object-cover"
+        />
+
+        {/* Discount Badge */}
+        {discount && !isSoldOut && (
+          <span className="absolute top-2 left-2 bg-green-600 text-white text-[10px] font-semibold px-2 py-1 rounded-full shadow-md z-10">
+            -{discount}%
+          </span>
+        )}
+      </Link>
 
       {/* Info */}
       <div className="p-3 flex flex-col flex-1 relative">
         <Link href={`/products/${slug}`}>
-          <h3 className="font-medium text-gray-800 text-sm sm:text-[15px] line-clamp-1 hover:text-blue-600">
-            {name}
-          </h3>
+          <h3 className="font-medium text-sm line-clamp-1">{name}</h3>
         </Link>
+
+        {/* Stock Status */}
+        <p
+          className={`absolute top-2 right-2   text-[10px] font-semibold px-2 py-1 rounded-full z-10 ${
+            isSoldOut
+              ? "bg-red-100 text-red-700"
+              : "bg-green-100 text-green-800"
+          }`}
+        >
+          {stock_status}
+        </p>
 
         <div className="flex items-center gap-2 mt-1">
           {sale_price && (
             <p className="text-black font-semibold text-base">৳{sale_price}</p>
           )}
           {regular_price && (
-            <p className="text-gray-400 line-through text-sm">
+            <p className="text-gray-400 line-through text-xs">
               ৳{regular_price}
             </p>
           )}
         </div>
 
-        <p
-          className={`mt-1 text-sm ${
-            isSoldOut ? "text-red-600 font-bold" : "text-gray-800"
-          }`}
-        >
-          {stock_status}
-        </p>
-
+        {/* Add to Cart */}
         <button
           onClick={handleAddToCart}
           disabled={added || isSoldOut}
-          className={`mt-3 py-2 text-sm rounded-xl font-medium transition-colors duration-200 ${
-            added
-              ? "bg-gray-400 text-white cursor-not-allowed"
-              : isSoldOut
-              ? "bg-gray-300 text-gray-700 cursor-not-allowed"
-              : "bg-[#063238] text-white hover:bg-blue-600"
-          }`}
+          className={`
+            mt-2 w-full py-1.5 text-sm rounded-lg font-medium 
+            ${added ? "bg-gray-400 text-white" : ""}
+            ${
+              isSoldOut
+                ? "bg-gray-300 text-gray-600"
+                : "bg-[#063238] text-white hover:bg-[#094c55]"
+            }
+          `}
         >
           {isSoldOut ? "Sold Out" : added ? "Added!" : "কার্টে যোগ করুন"}
         </button>
 
+        {/* Order Now */}
         <button
           onClick={handleOrderNow}
           disabled={isSoldOut}
-          className="mt-2 py-2 text-sm rounded-xl font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
+          className="
+            mt-2 w-full py-1.5 text-sm rounded-lg font-medium 
+            bg-green-600 text-white hover:bg-green-700
+          "
         >
           {isSoldOut ? "Sold Out" : "অর্ডার করুন"}
         </button>
