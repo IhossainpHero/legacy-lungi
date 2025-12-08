@@ -206,7 +206,7 @@ export default function ShopPageClient({ products }) {
             কোন প্রোডাক্ট পাওয়া যায়নি 😞
           </p>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-1">
             {filteredProducts.map((product) => (
               <ProductCard
                 key={product._id}

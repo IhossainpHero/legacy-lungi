@@ -30,9 +30,8 @@ export default async function ProductGrid() {
     return (
       <div
         className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 
-    /* 🚀 ছোট স্ক্রিনের জন্য gap-x-1 কে gap-x-3 বা gap-x-4 করা হয়েছে */
-    gap-x-5 gap-y-2
-    px-2 sm:px-3 md:px-4"
+               gap-1
+               sm:px-3 md:px-4"
       >
         {products.map((p) => (
           <ProductCard

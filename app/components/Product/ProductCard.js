@@ -185,30 +185,28 @@ export default function ProductCard({
   return (
     <div
       className="
-    border rounded-xl hover:shadow-lg transition-all 
-    p-2 
-    /* ❌ w-[167px] এবং m-2 সরানো হয়েছে */
-    /* ✅ w-full ক্লাস নিশ্চিত করবে এটি গ্রিড সেলে সম্পূর্ণ জায়গা নেবে */
+    border rounded-xl hover:shadow-lg transition-all 
+    p-2  
     w-full
-    flex flex-col bg-white overflow-hidden mx-auto
-  "
+    flex flex-col bg-white overflow-hidden mx-auto
+  "
     >
       {/* Image */}
       <Link
         href={`/products/${slug}`}
-        className="relative w-full h-48 sm:h-56 md:h-64 rounded-lg overflow-hidden"
+        className="relative w-full h-45 sm:h-72 md:h-80 rounded-lg overflow-hidden"
       >
         <NextImage
           src={mainImage}
           alt={name}
           fill
           unoptimized
-          className="object-cover"
+          className="object-cover object-center"
         />
 
         {/* Discount Badge */}
         {discount && !isSoldOut && (
-          <span className="absolute top-2 left-2 bg-green-600 text-white text-[10px] font-semibold px-2 py-1 rounded-full shadow-md z-10">
+          <span className="absolute top-2 left-2 bg-green-600 text-white text-[10px] font-semibold px-2 py-1 rounded-full shadow-md ">
             -{discount}%
           </span>
         )}
@@ -224,7 +222,7 @@ export default function ProductCard({
 
         {/* Stock Status */}
         <p
-          className={`absolute top-2 right-2   text-[10px] font-semibold px-2 py-1 rounded-full z-10 ${
+          className={`absolute top-2 right-2   text-[10px] font-semibold px-2 py-1 rounded-full   ${
             isSoldOut
               ? "bg-red-100 text-red-700"
               : "bg-green-100 text-green-800"

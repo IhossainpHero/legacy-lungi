@@ -203,7 +203,7 @@ export default function CategoryClientContent({
           কোন পণ্য পাওয়া যায়নি 😞
         </p>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1">
           {filteredProducts.map((product) => (
             <ProductCard
               key={product._id}

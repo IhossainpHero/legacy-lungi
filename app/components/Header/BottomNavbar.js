@@ -54,7 +54,7 @@ export default function BottomNavbar() {
 
   return (
     <>
-      <nav className="fixed bottom-0 w-full bg-white border-t shadow-md flex justify-around py-2 z-50">
+      <nav className="fixed bottom-0 w-full bg-white border-t shadow-md flex justify-around py-2 z-[999]">
         <Link href="/" className="flex flex-col items-center text-gray-700">
           <Home size={22} />
           <span className="mt-1 text-xs">Home</span>
